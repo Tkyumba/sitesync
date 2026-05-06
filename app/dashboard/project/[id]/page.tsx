@@ -4,6 +4,104 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter, useParams } from 'next/navigation'
 
+const S: any = {
+  wrap: { minHeight: '100vh', background: '#0F1117', fontFamily: "'Inter', -apple-system, sans-serif" },
+  nav: {
+    background: '#1C1F26', borderBottom: '1px solid #2D3139',
+    padding: '0 24px', height: '60px',
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    position: 'sticky' as const, top: 0, zIndex: 50
+  },
+  navLogo: { display: 'flex', alignItems: 'center', gap: '10px' },
+  logoBox: {
+    width: '30px', height: '30px',
+    background: 'linear-gradient(135deg, #F97316, #EA580C)',
+    borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center'
+  },
+  logoText: { fontSize: '18px', fontWeight: '700', color: '#FFFFFF', letterSpacing: '-0.3px' },
+  backBtn: {
+    display: 'flex', alignItems: 'center', gap: '6px',
+    background: 'none', border: '1px solid #2D3139',
+    borderRadius: '8px', padding: '6px 12px',
+    color: '#6B7280', fontSize: '13px', cursor: 'pointer'
+  },
+  body: { padding: '24px', maxWidth: '800px', margin: '0 auto' },
+  header: { marginBottom: '28px' },
+  projectTitle: { fontSize: '26px', fontWeight: '700', color: '#FFFFFF', margin: '0 0 6px', letterSpacing: '-0.5px' },
+  projectMeta: { fontSize: '14px', color: '#6B7280', margin: '0 0 14px' },
+  badgeRow: { display: 'flex', alignItems: 'center', gap: '10px' },
+  liveBadge: {
+    background: '#1A2B1A', border: '1px solid #166534',
+    borderRadius: '20px', padding: '5px 14px',
+    fontSize: '12px', fontWeight: '600', color: '#4ADE80'
+  },
+  inactiveBadge: {
+    background: '#1F1F1F', border: '1px solid #374151',
+    borderRadius: '20px', padding: '5px 14px',
+    fontSize: '12px', fontWeight: '600', color: '#6B7280'
+  },
+  completeBadge: {
+    background: '#1A1A2B', border: '1px solid #3730A3',
+    borderRadius: '20px', padding: '5px 14px',
+    fontSize: '12px', fontWeight: '600', color: '#818CF8'
+  },
+  activateBtn: {
+    background: 'linear-gradient(135deg, #22C55E, #16A34A)',
+    border: 'none', borderRadius: '20px', padding: '5px 16px',
+    fontSize: '12px', fontWeight: '600', color: '#FFFFFF',
+    cursor: 'pointer', boxShadow: '0 4px 12px rgba(34,197,94,0.3)'
+  },
+  completeBtn: {
+    background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
+    border: 'none', borderRadius: '20px', padding: '5px 16px',
+    fontSize: '12px', fontWeight: '600', color: '#FFFFFF',
+    cursor: 'pointer'
+  },
+  sectionTitle: { fontSize: '15px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 14px' },
+  phaseCard: {
+    background: '#1C1F26', border: '1px solid #2D3139',
+    borderRadius: '12px', overflow: 'hidden', marginBottom: '8px'
+  },
+  phaseInner: { padding: '14px 16px' },
+  phaseRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' },
+  phaseLeft: { display: 'flex', alignItems: 'center', gap: '12px' },
+  phaseNum: { fontSize: '12px', color: '#374151', fontWeight: '600', fontFamily: 'monospace', width: '20px' },
+  phaseName: { fontSize: '14px', fontWeight: '600', color: '#FFFFFF' },
+  phaseRight: { display: 'flex', alignItems: 'center', gap: '10px' },
+  viewPhotosBtn: {
+    background: 'none', border: '1px solid #2D3139',
+    borderRadius: '6px', padding: '4px 10px',
+    fontSize: '12px', color: '#3B82F6', cursor: 'pointer'
+  },
+  select: {
+    background: '#0F1117', border: '1px solid #2D3139',
+    borderRadius: '8px', padding: '8px 12px',
+    color: '#9CA3AF', fontSize: '13px',
+    width: '100%', outline: 'none', cursor: 'pointer'
+  },
+  photoSection: { borderTop: '1px solid #2D3139', padding: '16px', background: '#0F1117' },
+  photoGrid: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginTop: '10px' },
+  addPhaseRow: { display: 'flex', gap: '10px', marginTop: '16px' },
+  addPhaseInput: {
+    flex: 1, background: '#1C1F26', border: '1px solid #2D3139',
+    borderRadius: '10px', padding: '12px 14px',
+    color: '#FFFFFF', fontSize: '14px', outline: 'none'
+  },
+  addBtn: {
+    background: 'linear-gradient(135deg, #F97316, #EA580C)',
+    border: 'none', borderRadius: '10px', padding: '12px 20px',
+    color: '#FFFFFF', fontSize: '14px', fontWeight: '600',
+    cursor: 'pointer'
+  }
+}
+
+const statusConfig: any = {
+  not_started: { label: 'Not started', color: '#6B7280', bg: '#1F1F1F', border: '#374151' },
+  in_progress: { label: 'In progress', color: '#3B82F6', bg: '#1A1F2E', border: '#1D4ED8' },
+  complete: { label: 'Complete', color: '#22C55E', bg: '#1A2B1A', border: '#166534' },
+  skipped: { label: 'Skipped', color: '#6B7280', bg: '#1F1F1F', border: '#374151' },
+}
+
 export default function ProjectPage() {
   const [project, setProject] = useState<any>(null)
   const [phases, setPhases] = useState<any[]>([])
@@ -12,48 +110,24 @@ export default function ProjectPage() {
   const [expandedPhase, setExpandedPhase] = useState<string | null>(null)
   const [newPhase, setNewPhase] = useState('')
   const [loading, setLoading] = useState(false)
-
   const supabase = createClient()
   const router = useRouter()
   const params = useParams()
   const projectId = params.id as string
 
-  useEffect(() => {
-    load()
-  }, [])
+  useEffect(() => { load() }, [])
 
   async function load() {
-    const { data: projectData } = await supabase
-      .from('projects')
-      .select('*')
-      .eq('id', projectId)
-      .single()
-
+    const { data: projectData } = await supabase.from('projects').select('*').eq('id', projectId).single()
     setProject(projectData)
-
-    const { data: phaseData } = await supabase
-      .from('phases')
-      .select('*')
-      .eq('project_id', projectId)
-      .order('order_index', { ascending: true })
-
+    const { data: phaseData } = await supabase.from('phases').select('*').eq('project_id', projectId).order('order_index', { ascending: true })
     setPhases(phaseData || [])
-
-    const { data: subData } = await supabase
-      .from('users')
-      .select('*')
-      .eq('role', 'sub')
-
+    const { data: subData } = await supabase.from('users').select('*').eq('role', 'sub')
     setSubs(subData || [])
   }
 
   async function loadPhotos(phaseId: string) {
-    const { data } = await supabase
-      .from('phase_photos')
-      .select('*')
-      .eq('phase_id', phaseId)
-      .order('created_at', { ascending: false })
-
+    const { data } = await supabase.from('phase_photos').select('*').eq('phase_id', phaseId).order('created_at', { ascending: false })
     setPhotos(prev => ({ ...prev, [phaseId]: data || [] }))
     setExpandedPhase(expandedPhase === phaseId ? null : phaseId)
   }
@@ -61,265 +135,168 @@ export default function ProjectPage() {
   async function addPhase(e: React.FormEvent) {
     e.preventDefault()
     if (!newPhase.trim()) return
-
     setLoading(true)
-
-    await supabase.from('phases').insert({
-      project_id: projectId,
-      name: newPhase,
-      order_index: phases.length + 1,
-      status: 'not_started'
-    })
-
+    await supabase.from('phases').insert({ project_id: projectId, name: newPhase, order_index: phases.length + 1, status: 'not_started' })
     setNewPhase('')
     await load()
     setLoading(false)
   }
 
   async function assignSub(phaseId: string, subId: string) {
-    await supabase
-      .from('phases')
-      .update({ sub_id: subId || null })
-      .eq('id', phaseId)
-
+    await supabase.from('phases').update({ sub_id: subId || null }).eq('id', phaseId)
     await load()
   }
 
   async function activateProject() {
-    await supabase
-      .from('projects')
-      .update({
-        status: 'active',
-        activated_at: new Date().toISOString()
-      })
-      .eq('id', projectId)
-
-    const firstPhase = phases[0]
-
-    if (firstPhase?.sub_id) {
-      await supabase.from('notifications_log').insert({
-        trigger: 'project_activated',
-        recipient_id: firstPhase.sub_id,
-        message: `You have been assigned to ${project.name} — ${firstPhase.name}.`,
-        channel: 'email'
-      })
-    }
-
+    await supabase.from('projects').update({ status: 'active', activated_at: new Date().toISOString() }).eq('id', projectId)
     await load()
   }
 
-  const statusColors: any = {
-    not_started: 'text-gray-400 bg-gray-800',
-    in_progress: 'text-blue-400 bg-blue-950',
-    complete: 'text-green-400 bg-green-950',
-    skipped: 'text-gray-600 bg-gray-900'
+  async function completeProject() {
+    await supabase.from('projects').update({ status: 'complete' }).eq('id', projectId)
+    await load()
   }
 
-  if (!project) {
-    return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <p className="text-gray-400 text-sm">Loading...</p>
-      </div>
-    )
-  }
+  if (!project) return (
+    <div style={{ ...S.wrap, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <p style={{ color: '#6B7280', fontSize: '14px' }}>Loading...</p>
+    </div>
+  )
+
+  const completedPhases = phases.filter(p => p.status === 'complete').length
+  const progressPct = phases.length > 0 ? Math.round((completedPhases / phases.length) * 100) : 0
 
   return (
-    <div className="min-h-screen bg-gray-950">
-      <nav className="bg-blue-950 px-6 py-4 flex items-center justify-between">
-        <span className="text-white font-semibold text-lg">SiteSync</span>
-        <button
-          onClick={() => router.push('/dashboard')}
-          className="text-gray-400 text-sm hover:text-white"
-        >
-          Back to dashboard
+    <div style={S.wrap}>
+      <nav style={S.nav}>
+        <div style={S.navLogo}>
+          <div style={S.logoBox}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
+              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+          </div>
+          <span style={S.logoText}>SiteSync</span>
+        </div>
+        <button style={S.backBtn} onClick={() => router.push('/dashboard')}>
+          ← Back to dashboard
         </button>
       </nav>
 
-      <div className="max-w-2xl mx-auto px-6 py-10">
-        <div className="mb-8">
-          <h1 className="text-white text-2xl font-semibold">
-            {project.name}
-          </h1>
-          <p className="text-gray-400 text-sm mt-1">
-            {project.address} — {project.client_name}
-          </p>
+      <div style={S.body}>
+        <div style={S.header}>
+          <h1 style={S.projectTitle}>{project.name}</h1>
+          <p style={S.projectMeta}>{project.address} · {project.client_name}</p>
 
-          <div className="flex items-center gap-3 mt-2">
-            <span className="text-xs px-3 py-1 rounded-full bg-gray-800 text-gray-400 capitalize">
-              {project.status}
-            </span>
-
+          <div style={S.badgeRow}>
+            {project.status === 'active' && <span style={S.liveBadge}>● Live</span>}
+            {project.status === 'inactive' && <span style={S.inactiveBadge}>Inactive</span>}
+            {project.status === 'complete' && <span style={S.completeBadge}>✓ Complete</span>}
             {project.status === 'inactive' && (
-              <button
-                onClick={activateProject}
-                className="text-xs px-4 py-1.5 rounded-full bg-green-700 hover:bg-green-600 text-white font-medium"
-              >
-                Activate Project
-              </button>
+              <button style={S.activateBtn} onClick={activateProject}>Activate Project</button>
             )}
-
             {project.status === 'active' && (
-              <span className="text-xs px-3 py-1 rounded-full bg-green-900 text-green-400 font-medium">
-                Live
-              </span>
+              <button style={S.completeBtn} onClick={completeProject}>Mark as Complete</button>
             )}
           </div>
-        </div>
 
-        <div className="mb-8">
-          <h2 className="text-white font-medium mb-4">Build Phases</h2>
-
-          {phases.length === 0 ? (
-            <div className="bg-gray-900 rounded-xl border border-gray-800 p-6 text-center mb-4">
-              <p className="text-gray-400 text-sm">No phases yet.</p>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-2 mb-4">
-              {phases.map((phase, index) => (
-                <div
-                  key={phase.id}
-                  className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden"
-                >
-                  <div className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-3">
-                        <span className="text-gray-600 text-sm font-mono w-6">
-                          {index + 1}
-                        </span>
-                        <span className="text-white text-sm">
-                          {phase.name}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`text-xs px-3 py-1 rounded-full capitalize ${statusColors[phase.status]}`}
-                        >
-                          {phase.status.replace('_', ' ')}
-                        </span>
-
-                        {phase.status === 'complete' && (
-                          <button
-                            onClick={() => loadPhotos(phase.id)}
-                            className="text-xs text-blue-400 hover:text-blue-300 underline"
-                          >
-                            {expandedPhase === phase.id
-                              ? 'Hide photos'
-                              : 'View photos'}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="ml-9">
-                      <select
-                        value={phase.sub_id || ''}
-                        onChange={e =>
-                          assignSub(phase.id, e.target.value)
-                        }
-                        className="bg-gray-800 border border-gray-700 text-gray-300 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-blue-500 w-full"
-                      >
-                        <option value="">
-                          — Assign subcontractor —
-                        </option>
-
-                        {subs.map(sub => (
-                          <option key={sub.id} value={sub.id}>
-                            {sub.name} ({sub.email})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  {expandedPhase === phase.id &&
-                    photos[phase.id] && (
-                      <div className="border-t border-gray-800 p-4 bg-gray-950">
-                        {photos[phase.id].length === 0 ? (
-                          <p className="text-gray-500 text-xs">
-                            No photos uploaded yet.
-                          </p>
-                        ) : (
-                          <div className="space-y-6">
-                            <p className="text-gray-400 text-xs font-medium uppercase tracking-wide">
-                              {photos[phase.id].length} photo
-                              {photos[phase.id].length > 1 ? 's' : ''}{' '}
-                              uploaded
-                            </p>
-
-                            {photos[phase.id].map((photo, i) => (
-                              <div key={photo.id} className="space-y-2">
-                                <p className="text-gray-500 text-xs">
-                                  Photo {i + 1} of{' '}
-                                  {photos[phase.id].length}
-                                </p>
-
-                                {/* ✅ FIXED SECTION */}
-                                <a
-                                  href={photo.storage_url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="block"
-                                >
-                                  <img
-                                    src={photo.storage_url}
-                                    alt={`Phase completion photo ${i + 1}`}
-                                    className="w-full rounded-xl border border-gray-700 object-cover hover:opacity-95 cursor-zoom-in transition-opacity"
-                                    style={{ maxHeight: '400px' }}
-                                  />
-                                  <p className="text-blue-400 text-xs mt-1.5 hover:underline">
-                                    Click to open full size — right click to download
-                                  </p>
-                                </a>
-
-                                {photo.note && (
-                                  <div className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 mt-2">
-                                    <p className="text-gray-300 text-xs italic">
-                                      "{photo.note}"
-                                    </p>
-                                  </div>
-                                )}
-
-                                <p className="text-gray-600 text-xs">
-                                  Uploaded{' '}
-                                  {new Date(
-                                    photo.created_at
-                                  ).toLocaleString()}
-                                </p>
-
-                                {i <
-                                  photos[phase.id].length - 1 && (
-                                  <div className="border-t border-gray-800 mt-4"></div>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                </div>
-              ))}
+          {phases.length > 0 && (
+            <div style={{ marginTop: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <span style={{ fontSize: '12px', color: '#6B7280' }}>Build progress</span>
+                <span style={{ fontSize: '12px', fontWeight: '600', color: '#F97316' }}>{progressPct}%</span>
+              </div>
+              <div style={{ height: '5px', background: '#2D3139', borderRadius: '99px', overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${progressPct}%`, background: 'linear-gradient(90deg, #F97316, #22C55E)', borderRadius: '99px', transition: 'width 0.5s ease' }}></div>
+              </div>
+              <p style={{ fontSize: '12px', color: '#4B5563', marginTop: '6px' }}>{completedPhases} of {phases.length} phases complete</p>
             </div>
           )}
-
-          <form onSubmit={addPhase} className="flex gap-3">
-            <input
-              type="text"
-              value={newPhase}
-              onChange={e => setNewPhase(e.target.value)}
-              placeholder="e.g. Foundation, Framing, Rough Plumbing..."
-              className="flex-1 bg-gray-900 border border-gray-700 text-white rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-blue-500"
-            />
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-lg text-sm font-medium disabled:opacity-50"
-            >
-              Add
-            </button>
-          </form>
         </div>
+
+        <p style={S.sectionTitle}>Build Phases</p>
+
+        {phases.map((phase, index) => {
+          const sc = statusConfig[phase.status] || statusConfig.not_started
+          return (
+            <div key={phase.id} style={{
+              ...S.phaseCard,
+              borderColor: phase.status === 'in_progress' ? '#1D4ED8' : phase.status === 'complete' ? '#166534' : '#2D3139'
+            }}>
+              <div style={S.phaseInner}>
+                <div style={S.phaseRow}>
+                  <div style={S.phaseLeft}>
+                    <span style={S.phaseNum}>{index + 1}</span>
+                    <span style={S.phaseName}>{phase.name}</span>
+                  </div>
+                  <div style={S.phaseRight}>
+                    <span style={{ fontSize: '12px', fontWeight: '600', color: sc.color, background: sc.bg, border: `1px solid ${sc.border}`, borderRadius: '20px', padding: '3px 10px' }}>
+                      {sc.label}
+                    </span>
+                    {phase.status === 'complete' && (
+                      <button style={S.viewPhotosBtn} onClick={() => loadPhotos(phase.id)}>
+                        {expandedPhase === phase.id ? 'Hide' : 'Photos'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <select
+                  value={phase.sub_id || ''}
+                  onChange={e => assignSub(phase.id, e.target.value)}
+                  style={S.select}
+                >
+                  <option value="">— Assign subcontractor —</option>
+                  {subs.map(sub => (
+                    <option key={sub.id} value={sub.id}>{sub.name} — {sub.email}</option>
+                  ))}
+                </select>
+              </div>
+
+              {expandedPhase === phase.id && photos[phase.id] && (
+                <div style={S.photoSection}>
+                  <p style={{ fontSize: '12px', fontWeight: '600', color: '#6B7280', margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    {photos[phase.id].length} photo{photos[phase.id].length !== 1 ? 's' : ''} uploaded
+                  </p>
+                  {photos[phase.id].length === 0 ? (
+                    <p style={{ color: '#4B5563', fontSize: '13px' }}>No photos yet.</p>
+                  ) : (
+                    <div style={S.photoGrid}>
+                      {photos[phase.id].map((photo, i) => (
+                        <div key={photo.id}>
+                          <img
+                            src={photo.storage_url}
+                            alt={`Photo ${i + 1}`}
+                            style={{ width: '100%', height: '160px', objectFit: 'cover', borderRadius: '10px', border: '1px solid #2D3139', cursor: 'zoom-in' }}
+                            onClick={() => window.open(photo.storage_url, '_blank')}
+                          />
+                          {photo.note && (
+                            <p style={{ fontSize: '12px', color: '#9CA3AF', margin: '6px 0 0', fontStyle: 'italic' }}>"{photo.note}"</p>
+                          )}
+                          <p style={{ fontSize: '11px', color: '#374151', margin: '3px 0 0' }}>
+                            {new Date(photo.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        })}
+
+        <form onSubmit={addPhase} style={S.addPhaseRow}>
+          <input
+            type="text"
+            value={newPhase}
+            onChange={e => setNewPhase(e.target.value)}
+            placeholder="Add a phase — e.g. Foundation, Framing, Rough Plumbing..."
+            style={S.addPhaseInput}
+            onFocus={e => e.target.style.borderColor = '#F97316'}
+            onBlur={e => e.target.style.borderColor = '#2D3139'}
+          />
+          <button type="submit" disabled={loading} style={S.addBtn}>Add</button>
+        </form>
       </div>
     </div>
   )
