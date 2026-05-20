@@ -4,105 +4,15 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter, useParams } from 'next/navigation'
 
-const S: any = {
-  wrap: { minHeight: '100vh', background: '#0F1117', fontFamily: "'Inter', -apple-system, sans-serif" },
-  nav: {
-    background: '#1C1F26', borderBottom: '1px solid #2D3139',
-    padding: '0 24px', height: '60px',
-    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    position: 'sticky' as const, top: 0, zIndex: 50
-  },
-  navLogo: { display: 'flex', alignItems: 'center', gap: '10px' },
-  logoBox: {
-    width: '30px', height: '30px',
-    background: 'linear-gradient(135deg, #F97316, #EA580C)',
-    borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center'
-  },
-  logoText: { fontSize: '18px', fontWeight: '700', color: '#FFFFFF', letterSpacing: '-0.3px' },
-  backBtn: {
-    display: 'flex', alignItems: 'center', gap: '6px',
-    background: 'none', border: '1px solid #2D3139',
-    borderRadius: '8px', padding: '6px 12px',
-    color: '#6B7280', fontSize: '13px', cursor: 'pointer'
-  },
-  body: { padding: '24px', maxWidth: '800px', margin: '0 auto' },
-  header: { marginBottom: '28px' },
-  projectTitle: { fontSize: '26px', fontWeight: '700', color: '#FFFFFF', margin: '0 0 6px', letterSpacing: '-0.5px' },
-  projectMeta: { fontSize: '14px', color: '#6B7280', margin: '0 0 14px' },
-  badgeRow: { display: 'flex', alignItems: 'center', gap: '10px' },
-  liveBadge: {
-    background: '#1A2B1A', border: '1px solid #166534',
-    borderRadius: '20px', padding: '5px 14px',
-    fontSize: '12px', fontWeight: '600', color: '#4ADE80'
-  },
-  inactiveBadge: {
-    background: '#1F1F1F', border: '1px solid #374151',
-    borderRadius: '20px', padding: '5px 14px',
-    fontSize: '12px', fontWeight: '600', color: '#6B7280'
-  },
-  completeBadge: {
-    background: '#1A1A2B', border: '1px solid #3730A3',
-    borderRadius: '20px', padding: '5px 14px',
-    fontSize: '12px', fontWeight: '600', color: '#818CF8'
-  },
-  activateBtn: {
-    background: 'linear-gradient(135deg, #22C55E, #16A34A)',
-    border: 'none', borderRadius: '20px', padding: '5px 16px',
-    fontSize: '12px', fontWeight: '600', color: '#FFFFFF',
-    cursor: 'pointer', boxShadow: '0 4px 12px rgba(34,197,94,0.3)'
-  },
-  completeBtn: {
-    background: 'linear-gradient(135deg, #6366F1, #4F46E5)',
-    border: 'none', borderRadius: '20px', padding: '5px 16px',
-    fontSize: '12px', fontWeight: '600', color: '#FFFFFF',
-    cursor: 'pointer'
-  },
-  sectionTitle: { fontSize: '15px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 14px' },
-  phaseCard: {
-    background: '#1C1F26', border: '1px solid #2D3139',
-    borderRadius: '12px', overflow: 'hidden', marginBottom: '8px'
-  },
-  phaseInner: { padding: '14px 16px' },
-  phaseRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' },
-  phaseLeft: { display: 'flex', alignItems: 'center', gap: '12px' },
-  phaseNum: { fontSize: '12px', color: '#374151', fontWeight: '600', fontFamily: 'monospace', width: '20px' },
-  phaseName: { fontSize: '14px', fontWeight: '600', color: '#FFFFFF' },
-  phaseRight: { display: 'flex', alignItems: 'center', gap: '10px' },
-  viewPhotosBtn: {
-    background: 'none', border: '1px solid #2D3139',
-    borderRadius: '6px', padding: '4px 10px',
-    fontSize: '12px', color: '#3B82F6', cursor: 'pointer'
-  },
-  select: {
-    background: '#0F1117', border: '1px solid #2D3139',
-    borderRadius: '8px', padding: '8px 12px',
-    color: '#9CA3AF', fontSize: '13px',
-    width: '100%', outline: 'none', cursor: 'pointer'
-  },
-  photoSection: { borderTop: '1px solid #2D3139', padding: '16px', background: '#0F1117' },
-  photoGrid: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginTop: '10px' },
-  addPhaseRow: { display: 'flex', gap: '10px', marginTop: '16px' },
-  addPhaseInput: {
-    flex: 1, background: '#1C1F26', border: '1px solid #2D3139',
-    borderRadius: '10px', padding: '12px 14px',
-    color: '#FFFFFF', fontSize: '14px', outline: 'none'
-  },
-  addBtn: {
-    background: 'linear-gradient(135deg, #F97316, #EA580C)',
-    border: 'none', borderRadius: '10px', padding: '12px 20px',
-    color: '#FFFFFF', fontSize: '14px', fontWeight: '600',
-    cursor: 'pointer'
-  }
-}
-
 const statusConfig: any = {
-  not_started: { label: 'Not started', color: '#6B7280', bg: '#1F1F1F', border: '#374151' },
-  in_progress: { label: 'In progress', color: '#3B82F6', bg: '#1A1F2E', border: '#1D4ED8' },
-  complete: { label: 'Complete', color: '#22C55E', bg: '#1A2B1A', border: '#166534' },
-  skipped: { label: 'Skipped', color: '#6B7280', bg: '#1F1F1F', border: '#374151' },
+  not_started: { label: 'Not Started', color: '#6B7280', bg: '#1A1C22', border: '#2D3139', dot: '#374151' },
+  in_progress: { label: 'In Progress', color: '#60A5FA', bg: '#0F1929', border: '#1D4ED8', dot: '#3B82F6' },
+  complete: { label: 'Complete', color: '#4ADE80', bg: '#0A1F0A', border: '#166534', dot: '#22C55E' },
+  skipped: { label: 'Skipped', color: '#6B7280', bg: '#1A1C22', border: '#2D3139', dot: '#374151' },
 }
 
 export default function ProjectPage() {
+  const [user, setUser] = useState<any>(null)
   const [project, setProject] = useState<any>(null)
   const [phases, setPhases] = useState<any[]>([])
   const [subs, setSubs] = useState<any[]>([])
@@ -110,6 +20,7 @@ export default function ProjectPage() {
   const [expandedPhase, setExpandedPhase] = useState<string | null>(null)
   const [newPhase, setNewPhase] = useState('')
   const [loading, setLoading] = useState(false)
+  const [activeTab, setActiveTab] = useState<'board' | 'activity'>('board')
   const supabase = createClient()
   const router = useRouter()
   const params = useParams()
@@ -118,18 +29,23 @@ export default function ProjectPage() {
   useEffect(() => { load() }, [])
 
   async function load() {
+    const { data: { user: authUser } } = await supabase.auth.getUser()
+    if (!authUser) { router.push('/login'); return }
+    const { data: userData } = await supabase.from('users').select('*').eq('id', authUser.id).single()
+    setUser(userData)
     const { data: projectData } = await supabase.from('projects').select('*').eq('id', projectId).single()
     setProject(projectData)
-    const { data: phaseData } = await supabase.from('phases').select('*').eq('project_id', projectId).order('order_index', { ascending: true })
+    const { data: phaseData } = await supabase.from('phases').select('*, users(name, trade)').eq('project_id', projectId).order('order_index', { ascending: true })
     setPhases(phaseData || [])
     const { data: subData } = await supabase.from('users').select('*').eq('role', 'sub')
     setSubs(subData || [])
   }
 
   async function loadPhotos(phaseId: string) {
-    const { data } = await supabase.from('phase_photos').select('*').eq('phase_id', phaseId).order('created_at', { ascending: false })
+    if (expandedPhase === phaseId) { setExpandedPhase(null); return }
+    const { data } = await supabase.from('phase_photos').select('*, users(name)').eq('phase_id', phaseId).order('created_at', { ascending: false })
     setPhotos(prev => ({ ...prev, [phaseId]: data || [] }))
-    setExpandedPhase(expandedPhase === phaseId ? null : phaseId)
+    setExpandedPhase(phaseId)
   }
 
   async function addPhase(e: React.FormEvent) {
@@ -157,146 +73,229 @@ export default function ProjectPage() {
     await load()
   }
 
-  if (!project) return (
-    <div style={{ ...S.wrap, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <p style={{ color: '#6B7280', fontSize: '14px' }}>Loading...</p>
+  if (!project || !user) return (
+    <div style={{ minHeight: '100vh', background: '#0A0C10', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'DM Sans', sans-serif" }}>
+      <p style={{ color: '#4B5563' }}>Loading...</p>
     </div>
   )
 
-  const completedPhases = phases.filter(p => p.status === 'complete').length
-  const progressPct = phases.length > 0 ? Math.round((completedPhases / phases.length) * 100) : 0
+  const completedCount = phases.filter(p => p.status === 'complete').length
+  const inProgressCount = phases.filter(p => p.status === 'in_progress').length
+  const progressPct = phases.length > 0 ? Math.round((completedCount / phases.length) * 100) : 0
+  const isManager = user.role === 'manager' || user.role === 'vp' || user.role === 'owner'
+
+  // Group phases by status for board view
+  const notStarted = phases.filter(p => p.status === 'not_started')
+  const inProgress = phases.filter(p => p.status === 'in_progress')
+  const completed = phases.filter(p => p.status === 'complete')
 
   return (
-    <div style={S.wrap}>
-      <nav style={S.nav}>
-        <div style={S.navLogo}>
-          <div style={S.logoBox}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
-              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
-              <polyline points="9 22 9 12 15 12 15 22"/>
-            </svg>
+    <div style={{ minHeight: '100vh', background: '#0A0C10', fontFamily: "'DM Sans', -apple-system, sans-serif" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');`}</style>
+
+      {/* Nav */}
+      <nav style={{ background: '#111318', borderBottom: '1px solid #1E2128', padding: '0 28px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ width: '28px', height: '28px', background: 'linear-gradient(135deg, #F97316, #EA580C)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+            </div>
+            <span style={{ fontSize: '16px', fontWeight: '700', color: '#FFFFFF' }}>SiteSync</span>
           </div>
-          <span style={S.logoText}>SiteSync</span>
+          <span style={{ color: '#2D3139' }}>›</span>
+          <span style={{ fontSize: '14px', color: '#9CA3AF', fontWeight: '500' }}>{project.name}</span>
         </div>
-        <button style={S.backBtn} onClick={() => router.push('/dashboard')}>
-          ← Back to dashboard
-        </button>
+        <button onClick={() => router.push('/dashboard')} style={{ background: 'none', border: '1px solid #1E2128', borderRadius: '8px', padding: '5px 12px', color: '#6B7280', fontSize: '13px', cursor: 'pointer' }}>← Dashboard</button>
       </nav>
 
-      <div style={S.body}>
-        <div style={S.header}>
-          <h1 style={S.projectTitle}>{project.name}</h1>
-          <p style={S.projectMeta}>{project.address} · {project.client_name}</p>
+      <div style={{ padding: '24px 28px', maxWidth: '1100px', margin: '0 auto' }}>
 
-          <div style={S.badgeRow}>
-            {project.status === 'active' && <span style={S.liveBadge}>● Live</span>}
-            {project.status === 'inactive' && <span style={S.inactiveBadge}>Inactive</span>}
-            {project.status === 'complete' && <span style={S.completeBadge}>✓ Complete</span>}
-            {project.status === 'inactive' && (
-              <button style={S.activateBtn} onClick={activateProject}>Activate Project</button>
-            )}
-            {project.status === 'active' && (
-              <button style={S.completeBtn} onClick={completeProject}>Mark as Complete</button>
-            )}
+        {/* Project Header */}
+        <div style={{ background: '#111318', border: '1px solid #1E2128', borderRadius: '14px', padding: '20px 24px', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px' }}>
+            <div>
+              <h1 style={{ fontSize: '22px', fontWeight: '700', color: '#F9FAFB', margin: '0 0 4px', letterSpacing: '-0.4px' }}>{project.name}</h1>
+              <p style={{ fontSize: '13px', color: '#6B7280', margin: 0, fontFamily: "'DM Mono', monospace" }}>{project.address} · {project.client_name}</p>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {project.status === 'active' && <span style={{ background: '#0A1F0A', border: '1px solid #166534', borderRadius: '99px', padding: '5px 14px', fontSize: '12px', fontWeight: '600', color: '#4ADE80' }}>● Live</span>}
+              {project.status === 'inactive' && <span style={{ background: '#1A1C22', border: '1px solid #374151', borderRadius: '99px', padding: '5px 14px', fontSize: '12px', fontWeight: '600', color: '#6B7280' }}>Inactive</span>}
+              {project.status === 'complete' && <span style={{ background: '#1E1B4B', border: '1px solid #3730A3', borderRadius: '99px', padding: '5px 14px', fontSize: '12px', fontWeight: '600', color: '#818CF8' }}>✓ Complete</span>}
+              {isManager && project.status === 'inactive' && (
+                <button onClick={activateProject} style={{ background: 'linear-gradient(135deg, #22C55E, #16A34A)', border: 'none', borderRadius: '99px', padding: '5px 16px', fontSize: '12px', fontWeight: '600', color: '#FFF', cursor: 'pointer' }}>Activate</button>
+              )}
+              {isManager && project.status === 'active' && (
+                <button onClick={completeProject} style={{ background: 'linear-gradient(135deg, #6366F1, #4F46E5)', border: 'none', borderRadius: '99px', padding: '5px 16px', fontSize: '12px', fontWeight: '600', color: '#FFF', cursor: 'pointer' }}>Mark Complete</button>
+              )}
+            </div>
           </div>
 
+          {/* Progress bar */}
           {phases.length > 0 && (
-            <div style={{ marginTop: '16px' }}>
+            <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                <span style={{ fontSize: '12px', color: '#6B7280' }}>Build progress</span>
-                <span style={{ fontSize: '12px', fontWeight: '600', color: '#F97316' }}>{progressPct}%</span>
+                <span style={{ fontSize: '12px', color: '#6B7280' }}>{completedCount} of {phases.length} phases complete</span>
+                <span style={{ fontSize: '12px', fontWeight: '700', color: '#F97316', fontFamily: "'DM Mono', monospace" }}>{progressPct}%</span>
               </div>
-              <div style={{ height: '5px', background: '#2D3139', borderRadius: '99px', overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${progressPct}%`, background: 'linear-gradient(90deg, #F97316, #22C55E)', borderRadius: '99px', transition: 'width 0.5s ease' }}></div>
+              <div style={{ height: '6px', background: '#1E2128', borderRadius: '99px', overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${progressPct}%`, background: progressPct === 100 ? '#22C55E' : 'linear-gradient(90deg, #F97316, #FBBF24)', borderRadius: '99px', transition: 'width 0.5s ease' }} />
               </div>
-              <p style={{ fontSize: '12px', color: '#4B5563', marginTop: '6px' }}>{completedPhases} of {phases.length} phases complete</p>
+              <div style={{ display: 'flex', gap: '16px', marginTop: '10px' }}>
+                {[
+                  { label: 'Not started', count: notStarted.length, color: '#4B5563' },
+                  { label: 'In progress', count: inProgressCount, color: '#3B82F6' },
+                  { label: 'Complete', count: completedCount, color: '#22C55E' },
+                ].map(s => (
+                  <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: s.color }} />
+                    <span style={{ fontSize: '11px', color: '#4B5563', fontFamily: "'DM Mono', monospace" }}>{s.count} {s.label}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
 
-        <p style={S.sectionTitle}>Build Phases</p>
+        {/* Phase Ticket Board */}
+        <div style={{ marginBottom: '16px' }}>
+          <h2 style={{ fontSize: '13px', fontWeight: '600', color: '#6B7280', margin: '0 0 14px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Phase Board</h2>
 
-        {phases.map((phase, index) => {
-          const sc = statusConfig[phase.status] || statusConfig.not_started
-          return (
-            <div key={phase.id} style={{
-              ...S.phaseCard,
-              borderColor: phase.status === 'in_progress' ? '#1D4ED8' : phase.status === 'complete' ? '#166534' : '#2D3139'
-            }}>
-              <div style={S.phaseInner}>
-                <div style={S.phaseRow}>
-                  <div style={S.phaseLeft}>
-                    <span style={S.phaseNum}>{index + 1}</span>
-                    <span style={S.phaseName}>{phase.name}</span>
-                  </div>
-                  <div style={S.phaseRight}>
-                    <span style={{ fontSize: '12px', fontWeight: '600', color: sc.color, background: sc.bg, border: `1px solid ${sc.border}`, borderRadius: '20px', padding: '3px 10px' }}>
-                      {sc.label}
-                    </span>
-                    {phase.status === 'complete' && (
-                      <button style={S.viewPhotosBtn} onClick={() => loadPhotos(phase.id)}>
-                        {expandedPhase === phase.id ? 'Hide' : 'Photos'}
-                      </button>
+          {phases.length === 0 ? (
+            <div style={{ background: '#111318', border: '1px dashed #1E2128', borderRadius: '12px', padding: '48px', textAlign: 'center' }}>
+              <p style={{ color: '#4B5563', fontSize: '14px', margin: 0 }}>No phases yet. Add your first phase below.</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              {phases.map((phase, index) => {
+                const sc = statusConfig[phase.status] || statusConfig.not_started
+                const phasePhotos = photos[phase.id] || []
+                const isExpanded = expandedPhase === phase.id
+
+                return (
+                  <div key={phase.id} style={{ background: sc.bg, border: `1px solid ${sc.border}`, borderRadius: '12px', overflow: 'hidden', transition: 'border-color 0.2s' }}>
+
+                    {/* Ticket Header */}
+                    <div style={{ padding: '14px 16px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+
+                        {/* Phase number + status dot */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                          <span style={{ fontSize: '11px', color: '#374151', fontWeight: '600', fontFamily: "'DM Mono', monospace", width: '18px' }}>#{index + 1}</span>
+                          <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: sc.dot, flexShrink: 0 }} />
+                        </div>
+
+                        {/* Phase name */}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <span style={{ fontSize: '14px', fontWeight: '600', color: '#F9FAFB' }}>{phase.name}</span>
+                          {phase.users && (
+                            <span style={{ fontSize: '12px', color: '#6B7280', marginLeft: '8px' }}>
+                              → {phase.users.name}{phase.users.trade ? ` (${phase.users.trade})` : ''}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Status badge */}
+                        <span style={{ fontSize: '11px', fontWeight: '600', color: sc.color, background: sc.bg, border: `1px solid ${sc.border}`, borderRadius: '99px', padding: '3px 10px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                          {sc.label}
+                        </span>
+
+                        {/* Photos button - only when complete */}
+                        {phase.status === 'complete' && (
+                          <button
+                            onClick={() => loadPhotos(phase.id)}
+                            style={{ background: isExpanded ? '#0F1929' : 'none', border: '1px solid #1D4ED8', borderRadius: '8px', padding: '5px 12px', fontSize: '12px', color: '#60A5FA', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}
+                          >
+                            {isExpanded ? '▲ Hide photos' : `📷 View photos`}
+                          </button>
+                        )}
+
+                        {/* In progress indicator */}
+                        {phase.status === 'in_progress' && (
+                          <span style={{ fontSize: '11px', color: '#60A5FA', fontFamily: "'DM Mono', monospace", flexShrink: 0 }}>Awaiting completion...</span>
+                        )}
+                      </div>
+
+                      {/* Sub assignment — manager only */}
+                      {isManager && (
+                        <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+                          <select
+                            value={phase.sub_id || ''}
+                            onChange={e => assignSub(phase.id, e.target.value)}
+                            style={{ background: '#0A0C10', border: '1px solid #1E2128', borderRadius: '8px', padding: '7px 12px', color: phase.sub_id ? '#D1D5DB' : '#4B5563', fontSize: '12px', width: '100%', outline: 'none', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}
+                          >
+                            <option value="">— Assign subcontractor —</option>
+                            {subs.map(sub => (
+                              <option key={sub.id} value={sub.id}>{sub.name}{sub.trade ? ` · ${sub.trade}` : ''} — {sub.email}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
+                      {/* Timestamps */}
+                      {(phase.started_at || phase.completed_at) && (
+                        <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
+                          {phase.started_at && <span style={{ fontSize: '11px', color: '#374151', fontFamily: "'DM Mono', monospace" }}>Started {new Date(phase.started_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>}
+                          {phase.completed_at && <span style={{ fontSize: '11px', color: '#166534', fontFamily: "'DM Mono', monospace" }}>✓ Completed {new Date(phase.completed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Photo panel — expands when clicked */}
+                    {isExpanded && (
+                      <div style={{ borderTop: `1px solid ${sc.border}`, background: '#0A0C10', padding: '16px' }}>
+                        {phasePhotos.length === 0 ? (
+                          <p style={{ color: '#4B5563', fontSize: '13px', margin: 0 }}>No photos uploaded yet.</p>
+                        ) : (
+                          <>
+                            <p style={{ fontSize: '11px', fontWeight: '600', color: '#6B7280', margin: '0 0 12px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                              {phasePhotos.length} photo{phasePhotos.length !== 1 ? 's' : ''} submitted
+                            </p>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '10px' }}>
+                              {phasePhotos.map((photo: any, i: number) => (
+                                <div key={photo.id} style={{ background: '#111318', borderRadius: '10px', overflow: 'hidden', border: '1px solid #1E2128' }}>
+                                  <img
+                                    src={photo.storage_url}
+                                    alt={`Photo ${i + 1}`}
+                                    style={{ width: '100%', height: '120px', objectFit: 'cover', cursor: 'zoom-in', display: 'block' }}
+                                    onClick={() => window.open(photo.storage_url, '_blank')}
+                                  />
+                                  <div style={{ padding: '8px 10px' }}>
+                                    {photo.note && <p style={{ fontSize: '11px', color: '#9CA3AF', margin: '0 0 3px', fontStyle: 'italic' }}>"{photo.note}"</p>}
+                                    <p style={{ fontSize: '10px', color: '#4B5563', margin: 0, fontFamily: "'DM Mono', monospace" }}>
+                                      {photo.users?.name || 'Unknown'} · {new Date(photo.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                    </p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
                     )}
                   </div>
-                </div>
-                <select
-                  value={phase.sub_id || ''}
-                  onChange={e => assignSub(phase.id, e.target.value)}
-                  style={S.select}
-                >
-                  <option value="">— Assign subcontractor —</option>
-                  {subs.map(sub => (
-                    <option key={sub.id} value={sub.id}>{sub.name} — {sub.email}</option>
-                  ))}
-                </select>
-              </div>
-
-              {expandedPhase === phase.id && photos[phase.id] && (
-                <div style={S.photoSection}>
-                  <p style={{ fontSize: '12px', fontWeight: '600', color: '#6B7280', margin: '0 0 10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    {photos[phase.id].length} photo{photos[phase.id].length !== 1 ? 's' : ''} uploaded
-                  </p>
-                  {photos[phase.id].length === 0 ? (
-                    <p style={{ color: '#4B5563', fontSize: '13px' }}>No photos yet.</p>
-                  ) : (
-                    <div style={S.photoGrid}>
-                      {photos[phase.id].map((photo, i) => (
-                        <div key={photo.id}>
-                          <img
-                            src={photo.storage_url}
-                            alt={`Photo ${i + 1}`}
-                            style={{ width: '100%', height: '160px', objectFit: 'cover', borderRadius: '10px', border: '1px solid #2D3139', cursor: 'zoom-in' }}
-                            onClick={() => window.open(photo.storage_url, '_blank')}
-                          />
-                          {photo.note && (
-                            <p style={{ fontSize: '12px', color: '#9CA3AF', margin: '6px 0 0', fontStyle: 'italic' }}>"{photo.note}"</p>
-                          )}
-                          <p style={{ fontSize: '11px', color: '#374151', margin: '3px 0 0' }}>
-                            {new Date(photo.created_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+                )
+              })}
             </div>
-          )
-        })}
+          )}
+        </div>
 
-        <form onSubmit={addPhase} style={S.addPhaseRow}>
-          <input
-            type="text"
-            value={newPhase}
-            onChange={e => setNewPhase(e.target.value)}
-            placeholder="Add a phase — e.g. Foundation, Framing, Rough Plumbing..."
-            style={S.addPhaseInput}
-            onFocus={e => e.target.style.borderColor = '#F97316'}
-            onBlur={e => e.target.style.borderColor = '#2D3139'}
-          />
-          <button type="submit" disabled={loading} style={S.addBtn}>Add</button>
-        </form>
+        {/* Add phase — manager only */}
+        {isManager && (
+          <form onSubmit={addPhase} style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
+            <input
+              type="text"
+              value={newPhase}
+              onChange={e => setNewPhase(e.target.value)}
+              placeholder="Add a phase — e.g. Foundation, Framing, Rough Plumbing..."
+              style={{ flex: 1, background: '#111318', border: '1px solid #1E2128', borderRadius: '10px', padding: '12px 16px', color: '#F9FAFB', fontSize: '13px', outline: 'none', fontFamily: "'DM Sans', sans-serif" }}
+              onFocus={e => e.target.style.borderColor = '#F97316'}
+              onBlur={e => e.target.style.borderColor = '#1E2128'}
+            />
+            <button type="submit" disabled={loading} style={{ background: 'linear-gradient(135deg, #F97316, #EA580C)', border: 'none', borderRadius: '10px', padding: '12px 20px', color: '#FFF', fontSize: '13px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+              Add Phase
+            </button>
+          </form>
+        )}
       </div>
     </div>
   )
