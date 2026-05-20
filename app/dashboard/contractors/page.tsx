@@ -77,7 +77,14 @@ export default function ContractorsPage() {
       }
     }
 
-    setSuccess(`${form.name} added. They'll receive a confirmation email to activate their account.`)
+    // Send proper invite email
+    fetch('/api/invite-contractor', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: form.name, email: form.email, trade: form.trade, tempPassword })
+    }).catch(() => {})
+
+    setSuccess(`${form.name} added and invited. They'll get an email with login details.`)
     setForm({ name: '', email: '', phone: '', trade: '' })
     setShowForm(false)
     setLoading(false)

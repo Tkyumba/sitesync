@@ -26,7 +26,22 @@ export default function ProjectPage() {
   const params = useParams()
   const projectId = params.id as string
 
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    load()
+
+    // Realtime — board updates instantly when a sub marks a phase complete
+    const channel = supabase
+      .channel('phases-live')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'phases',
+        filter: `project_id=eq.${projectId}`
+      }, () => { load() })
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [])
 
   async function load() {
     const { data: { user: authUser } } = await supabase.auth.getUser()
