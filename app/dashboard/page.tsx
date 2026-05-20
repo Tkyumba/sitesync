@@ -58,6 +58,9 @@ export default function DashboardPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <span style={{ fontSize: '13px', color: '#6B7280', fontFamily: "'DM Mono', monospace" }}>{user.name}</span>
           <span style={{ background: isManager ? '#1A1F2E' : '#1F1A10', border: `1px solid ${isManager ? '#2D4ED8' : '#EA580C'}`, borderRadius: '99px', padding: '3px 10px', fontSize: '11px', fontWeight: '600', color: isManager ? '#60A5FA' : '#F97316', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{user.role}</span>
+          {isManager && (
+            <button onClick={() => router.push('/dashboard/contractors')} style={{ background: 'none', border: '1px solid #1E2128', borderRadius: '8px', padding: '5px 12px', color: '#9CA3AF', fontSize: '13px', cursor: 'pointer' }}>Contractors</button>
+          )}
           <button onClick={async () => { await supabase.auth.signOut(); router.push('/login') }} style={{ background: 'none', border: '1px solid #1E2128', borderRadius: '8px', padding: '5px 12px', color: '#6B7280', fontSize: '13px', cursor: 'pointer' }}>Sign out</button>
         </div>
       </nav>
