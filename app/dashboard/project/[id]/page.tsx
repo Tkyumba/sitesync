@@ -82,7 +82,7 @@ export default function ProjectPage() {
   const completedCount = phases.filter(p => p.status === 'complete').length
   const inProgressCount = phases.filter(p => p.status === 'in_progress').length
   const progressPct = phases.length > 0 ? Math.round((completedCount / phases.length) * 100) : 0
-  const isManager = user.role === 'manager' || user.role === 'vp' || user.role === 'owner'
+  const isManager = user.role !== 'sub'
 
   // Group phases by status for board view
   const notStarted = phases.filter(p => p.status === 'not_started')

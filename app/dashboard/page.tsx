@@ -41,7 +41,7 @@ export default function DashboardPage() {
   const unassigned = allPhases.filter(p => !p.sub_id && p.status === 'not_started').length
 
   // Manager gets full working view, owner gets overview
-  const isManager = user.role === 'manager' || user.role === 'vp'
+  const isManager = user.role !== 'sub'
 
   return (
     <div style={{ minHeight: '100vh', background: '#0A0C10', fontFamily: "'DM Sans', -apple-system, sans-serif" }}>
@@ -67,7 +67,7 @@ export default function DashboardPage() {
         {/* Header */}
         <div style={{ marginBottom: '28px' }}>
           <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#F9FAFB', margin: '0 0 4px', letterSpacing: '-0.5px' }}>
-            {isManager ? 'Operations Hub' : 'Overview'}
+            {user.role === 'owner' ? 'Command Center' : isManager ? 'Operations Hub' : 'Overview'}
           </h1>
           <p style={{ fontSize: '13px', color: '#6B7280', margin: 0 }}>
             {isManager ? 'Manage all active builds and subcontractor assignments.' : 'High-level status across all Legacy Homes builds.'}
