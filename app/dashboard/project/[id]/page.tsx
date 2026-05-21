@@ -22,6 +22,8 @@ export default function ProjectPage() {
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<'board' | 'activity'>('board')
   const [scheduledTimes, setScheduledTimes] = useState<{ [key: string]: string }>({})
+  const [sendingLink, setSendingLink] = useState<string | null>(null)
+  const [sentLink, setSentLink] = useState<{ [key: string]: boolean }>({})
   const supabase = createClient()
   const router = useRouter()
   const params = useParams()
@@ -256,6 +258,28 @@ export default function ProjectPage() {
                               style={{ background: '#0A0C10', border: '1px solid #1E2128', borderRadius: '8px', padding: '7px 12px', color: '#D1D5DB', fontSize: '12px', outline: 'none', fontFamily: "'DM Sans', sans-serif" }}
                             />
                           </div>
+                          {/* Send Link button */}
+                          {phase.sub_name && phase.sub_phone && phase.status !== 'complete' && (
+                            <button
+                              onClick={async () => {
+                                setSendingLink(phase.id)
+                                const res = await fetch('/api/send-job-link', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ phaseId: phase.id, subName: phase.sub_name, subPhone: phase.sub_phone })
+                                })
+                                const data = await res.json()
+                                setSendingLink(null)
+                                setSentLink(prev => ({ ...prev, [phase.id]: true }))
+                                setTimeout(() => setSentLink(prev => ({ ...prev, [phase.id]: false })), 3000)
+                              }}
+                              disabled={sendingLink === phase.id}
+                              style={{ width: '100%', marginTop: '8px', background: sentLink[phase.id] ? '#14532D' : 'linear-gradient(135deg, #F97316, #EA580C)', border: 'none', borderRadius: '8px', padding: '9px', color: '#FFF', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
+                            >
+                              {sendingLink === phase.id ? 'Sending...' : sentLink[phase.id] ? '✓ Link sent!' : `📱 Send job link to ${phase.sub_name}`}
+                            </button>
+                          )}
+
                           {subs.length > 0 && (
                             <select
                               value={phase.sub_id || ''}
