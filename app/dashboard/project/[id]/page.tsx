@@ -234,16 +234,46 @@ export default function ProjectPage() {
                       {/* Sub assignment — manager only */}
                       {isManager && (
                         <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
-                          <select
-                            value={phase.sub_id || ''}
-                            onChange={e => assignSub(phase.id, e.target.value)}
-                            style={{ background: '#0A0C10', border: '1px solid #1E2128', borderRadius: '8px', padding: '7px 12px', color: phase.sub_id ? '#D1D5DB' : '#4B5563', fontSize: '12px', width: '100%', outline: 'none', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}
-                          >
-                            <option value="">— Assign subcontractor —</option>
-                            {subs.map(sub => (
-                              <option key={sub.id} value={sub.id}>{sub.name}{sub.trade ? ` · ${sub.trade}` : ''} — {sub.email}</option>
-                            ))}
-                          </select>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                            <input
+                              type="text"
+                              value={phase.sub_name || ''}
+                              onChange={async e => {
+                                await supabase.from('phases').update({ sub_name: e.target.value }).eq('id', phase.id)
+                                await load()
+                              }}
+                              placeholder="Sub name"
+                              style={{ background: '#0A0C10', border: '1px solid #1E2128', borderRadius: '8px', padding: '7px 12px', color: '#D1D5DB', fontSize: '12px', outline: 'none', fontFamily: "'DM Sans', sans-serif" }}
+                            />
+                            <input
+                              type="tel"
+                              value={phase.sub_phone || ''}
+                              onChange={async e => {
+                                await supabase.from('phases').update({ sub_phone: e.target.value }).eq('id', phase.id)
+                                await load()
+                              }}
+                              placeholder="Phone +1..."
+                              style={{ background: '#0A0C10', border: '1px solid #1E2128', borderRadius: '8px', padding: '7px 12px', color: '#D1D5DB', fontSize: '12px', outline: 'none', fontFamily: "'DM Sans', sans-serif" }}
+                            />
+                          </div>
+                          {subs.length > 0 && (
+                            <select
+                              value={phase.sub_id || ''}
+                              onChange={async e => {
+                                const sub = subs.find(s => s.id === e.target.value)
+                                if (sub) {
+                                  await supabase.from('phases').update({ sub_id: sub.id, sub_name: sub.name, sub_phone: sub.phone || '' }).eq('id', phase.id)
+                                  await load()
+                                }
+                              }}
+                              style={{ background: '#0A0C10', border: '1px solid #1E2128', borderRadius: '8px', padding: '7px 12px', color: '#4B5563', fontSize: '11px', width: '100%', outline: 'none', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", marginTop: '6px' }}
+                            >
+                              <option value="">— Or pick from existing contractors —</option>
+                              {subs.map(sub => (
+                                <option key={sub.id} value={sub.id}>{sub.name}{sub.trade ? ` · ${sub.trade}` : ''}</option>
+                              ))}
+                            </select>
+                          )}
                         </div>
                       )}
 
