@@ -21,6 +21,7 @@ export default function ProjectPage() {
   const [newPhase, setNewPhase] = useState('')
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<'board' | 'activity'>('board')
+  const [scheduledTimes, setScheduledTimes] = useState<{ [key: string]: string }>({})
   const supabase = createClient()
   const router = useRouter()
   const params = useParams()
@@ -243,6 +244,22 @@ export default function ProjectPage() {
                               <option key={sub.id} value={sub.id}>{sub.name}{sub.trade ? ` · ${sub.trade}` : ''} — {sub.email}</option>
                             ))}
                           </select>
+                        </div>
+                      )}
+
+                      {/* Scheduled start time for next phase — manager only */}
+                      {isManager && phase.status === 'in_progress' && (
+                        <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+                          <label style={{ fontSize: '11px', fontWeight: '600', color: '#4B5563', textTransform: 'uppercase', letterSpacing: '0.07em', display: 'block', marginBottom: '5px' }}>
+                            Next phase start time (sent to next sub when this completes)
+                          </label>
+                          <input
+                            type="text"
+                            value={scheduledTimes[phase.id] || ''}
+                            onChange={e => setScheduledTimes(prev => ({ ...prev, [phase.id]: e.target.value }))}
+                            placeholder="e.g. Tomorrow at 8:00 AM"
+                            style={{ width: '100%', boxSizing: 'border-box', background: '#0A0C10', border: '1px solid #1E2128', borderRadius: '8px', padding: '7px 12px', color: '#F9FAFB', fontSize: '12px', outline: 'none', fontFamily: "'DM Sans', sans-serif" }}
+                          />
                         </div>
                       )}
 
