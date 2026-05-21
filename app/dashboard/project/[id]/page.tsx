@@ -296,20 +296,46 @@ export default function ProjectPage() {
 
         {/* Add phase — manager only */}
         {isManager && (
-          <form onSubmit={addPhase} style={{ display: 'flex', gap: '10px', marginTop: '16px' }}>
-            <input
-              type="text"
-              value={newPhase}
-              onChange={e => setNewPhase(e.target.value)}
-              placeholder="Add a phase — e.g. Foundation, Framing, Rough Plumbing..."
-              style={{ flex: 1, background: '#111318', border: '1px solid #1E2128', borderRadius: '10px', padding: '12px 16px', color: '#F9FAFB', fontSize: '13px', outline: 'none', fontFamily: "'DM Sans', sans-serif" }}
-              onFocus={e => e.target.style.borderColor = '#F97316'}
-              onBlur={e => e.target.style.borderColor = '#1E2128'}
-            />
-            <button type="submit" disabled={loading} style={{ background: 'linear-gradient(135deg, #F97316, #EA580C)', border: 'none', borderRadius: '10px', padding: '12px 20px', color: '#FFF', fontSize: '13px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap' }}>
-              Add Phase
-            </button>
-          </form>
+          <div style={{ marginTop: '16px' }}>
+            <p style={{ fontSize: '11px', fontWeight: '600', color: '#4B5563', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Quick add</p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
+              {[
+                'Site Prep', 'Foundation', 'Framing', 'Roofing', 'Windows & Doors',
+                'Rough Plumbing', 'Rough Electric', 'HVAC Rough-In', 'Insulation',
+                'Drywall', 'Painting', 'Trim & Finish', 'Flooring', 'Cabinets',
+                'Final Plumbing', 'Final Electric', 'Final HVAC', 'Punch List', 'Final Walkthrough'
+              ].filter(t => !phases.find(p => p.name === t)).map(template => (
+                <button
+                  key={template}
+                  onClick={async () => {
+                    setLoading(true)
+                    await supabase.from('phases').insert({ project_id: projectId, name: template, order_index: phases.length + 1, status: 'not_started' })
+                    await load()
+                    setLoading(false)
+                  }}
+                  style={{ background: '#111318', border: '1px solid #1E2128', borderRadius: '99px', padding: '5px 12px', fontSize: '12px', color: '#9CA3AF', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#F97316'; e.currentTarget.style.color = '#F97316' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#1E2128'; e.currentTarget.style.color = '#9CA3AF' }}
+                >
+                  + {template}
+                </button>
+              ))}
+            </div>
+            <form onSubmit={addPhase} style={{ display: 'flex', gap: '10px' }}>
+              <input
+                type="text"
+                value={newPhase}
+                onChange={e => setNewPhase(e.target.value)}
+                placeholder="Or type a custom phase..."
+                style={{ flex: 1, background: '#111318', border: '1px solid #1E2128', borderRadius: '10px', padding: '12px 16px', color: '#F9FAFB', fontSize: '13px', outline: 'none', fontFamily: "'DM Sans', sans-serif" }}
+                onFocus={e => e.target.style.borderColor = '#F97316'}
+                onBlur={e => e.target.style.borderColor = '#1E2128'}
+              />
+              <button type="submit" disabled={loading} style={{ background: 'linear-gradient(135deg, #F97316, #EA580C)', border: 'none', borderRadius: '10px', padding: '12px 20px', color: '#FFF', fontSize: '13px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                Add
+              </button>
+            </form>
+          </div>
         )}
       </div>
     </div>
