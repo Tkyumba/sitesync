@@ -107,7 +107,7 @@ async function sendEmail({ to, subject, html }: { to: string; subject: string; h
   await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: 'SiteSync <notifications@sitesync.app>', to, subject, html })
+    body: JSON.stringify({ from: 'SiteSync <onboarding@resend.dev>', to, subject, html })
   })
 }
 
