@@ -11,6 +11,48 @@ const statusConfig: any = {
   skipped: { label: 'Skipped', color: '#6B7280', bg: '#1A1C22', border: '#2D3139', dot: '#374151' },
 }
 
+function AddSubForm({ phaseId, subs, onAdd }: { phaseId: string, subs: any[], onAdd: (name: string, phone: string, email: string) => void }) {
+  const [show, setShow] = useState(false)
+  const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [email, setEmail] = useState('')
+
+  async function handleAdd() {
+    if (!name.trim()) return
+    await onAdd(name, phone, email)
+    setName(''); setPhone(''); setEmail(''); setShow(false)
+  }
+
+  if (!show) return (
+    <button onClick={() => setShow(true)} style={{ width: '100%', background: 'none', border: '1px dashed #1E2128', borderRadius: '8px', padding: '8px', color: '#4B5563', fontSize: '12px', cursor: 'pointer' }}>
+      + Add subcontractor
+    </button>
+  )
+
+  return (
+    <div style={{ background: '#0A0C10', border: '1px solid #1E2128', borderRadius: '10px', padding: '12px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+        <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Name *" style={{ background: '#111318', border: '1px solid #1E2128', borderRadius: '7px', padding: '7px 10px', color: '#F9FAFB', fontSize: '12px', outline: 'none', fontFamily: "'DM Sans', sans-serif" }} />
+        <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="Phone +1..." style={{ background: '#111318', border: '1px solid #1E2128', borderRadius: '7px', padding: '7px 10px', color: '#F9FAFB', fontSize: '12px', outline: 'none', fontFamily: "'DM Sans', sans-serif" }} />
+      </div>
+      <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" style={{ width: '100%', boxSizing: 'border-box', background: '#111318', border: '1px solid #1E2128', borderRadius: '7px', padding: '7px 10px', color: '#F9FAFB', fontSize: '12px', outline: 'none', fontFamily: "'DM Sans', sans-serif", marginBottom: '8px' }} />
+      {subs.length > 0 && (
+        <select onChange={e => {
+          const sub = subs.find((s: any) => s.id === e.target.value)
+          if (sub) { setName(sub.name); setPhone(sub.phone || ''); setEmail(sub.email || '') }
+        }} style={{ width: '100%', background: '#111318', border: '1px solid #1E2128', borderRadius: '7px', padding: '7px 10px', color: '#4B5563', fontSize: '11px', outline: 'none', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", marginBottom: '8px' }}>
+          <option value="">— Or pick existing contractor —</option>
+          {subs.map((sub: any) => <option key={sub.id} value={sub.id}>{sub.name}{sub.trade ? ` · ${sub.trade}` : ''}</option>)}
+        </select>
+      )}
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <button onClick={() => setShow(false)} style={{ flex: 1, background: 'none', border: '1px solid #1E2128', borderRadius: '7px', padding: '7px', color: '#6B7280', fontSize: '12px', cursor: 'pointer' }}>Cancel</button>
+        <button onClick={handleAdd} style={{ flex: 2, background: 'linear-gradient(135deg, #F97316, #EA580C)', border: 'none', borderRadius: '7px', padding: '7px', color: '#FFF', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>Add to Phase</button>
+      </div>
+    </div>
+  )
+}
+
 export default function ProjectPage() {
   const [user, setUser] = useState<any>(null)
   const [project, setProject] = useState<any>(null)
@@ -22,6 +64,7 @@ export default function ProjectPage() {
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<'board' | 'activity'>('board')
   const [scheduledTimes, setScheduledTimes] = useState<{ [key: string]: string }>({})
+  const [phaseSubs, setPhaseSubs] = useState<{ [key: string]: any[] }>({})
   const [sendingLink, setSendingLink] = useState<string | null>(null)
   const [sentLink, setSentLink] = useState<{ [key: string]: boolean }>({})
   const supabase = createClient()
@@ -57,6 +100,13 @@ export default function ProjectPage() {
     setPhases(phaseData || [])
     const { data: subData } = await supabase.from('users').select('*').eq('role', 'sub')
     setSubs(subData || [])
+    const { data: phaseSubData } = await supabase.from('phase_subs').select('*').in('phase_id', (phaseData || []).map((p: any) => p.id))
+    const grouped: { [key: string]: any[] } = {}
+    for (const ps of (phaseSubData || [])) {
+      if (!grouped[ps.phase_id]) grouped[ps.phase_id] = []
+      grouped[ps.phase_id].push(ps)
+    }
+    setPhaseSubs(grouped)
   }
 
   async function loadPhotos(phaseId: string) {
@@ -236,72 +286,53 @@ export default function ProjectPage() {
                       {/* Sub assignment — manager only */}
                       {isManager && (
                         <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                            <input
-                              type="text"
-                              defaultValue={phase.sub_name || ''}
-                              onBlur={async e => {
-                                if (e.target.value !== (phase.sub_name || '')) {
-                                  await supabase.from('phases').update({ sub_name: e.target.value }).eq('id', phase.id)
-                                  await load()
-                                }
-                              }}
-                              placeholder="Sub name"
-                              style={{ background: '#0A0C10', border: '1px solid #1E2128', borderRadius: '8px', padding: '7px 12px', color: '#D1D5DB', fontSize: '12px', outline: 'none', fontFamily: "'DM Sans', sans-serif" }}
-                            />
-                            <input
-                              type="email"
-                              defaultValue={phase.sub_email || ''}
-                              onBlur={async e => {
-                                if (e.target.value !== (phase.sub_email || '')) {
-                                  await supabase.from('phases').update({ sub_email: e.target.value }).eq('id', phase.id)
-                                  await load()
-                                }
-                              }}
-                              placeholder="Email"
-                              style={{ background: '#0A0C10', border: '1px solid #1E2128', borderRadius: '8px', padding: '7px 12px', color: '#D1D5DB', fontSize: '12px', outline: 'none', fontFamily: "'DM Sans', sans-serif" }}
-                            />
-                          </div>
-                          {/* Send Link button */}
-                          {phase.sub_name && (phase.sub_phone || phase.sub_email) && phase.status !== 'complete' && (
-                            <button
-                              onClick={async () => {
-                                setSendingLink(phase.id)
-                                const res = await fetch('/api/send-job-link', {
-                                  method: 'POST',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ phaseId: phase.id, subName: phase.sub_name, subPhone: phase.sub_phone, subEmail: phase.sub_email })
-                                })
-                                const data = await res.json()
-                                setSendingLink(null)
-                                setSentLink(prev => ({ ...prev, [phase.id]: true }))
-                                setTimeout(() => setSentLink(prev => ({ ...prev, [phase.id]: false })), 3000)
-                              }}
-                              disabled={sendingLink === phase.id}
-                              style={{ width: '100%', marginTop: '8px', background: sentLink[phase.id] ? '#14532D' : 'linear-gradient(135deg, #F97316, #EA580C)', border: 'none', borderRadius: '8px', padding: '9px', color: '#FFF', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
-                            >
-                              {sendingLink === phase.id ? 'Sending...' : sentLink[phase.id] ? '✓ Link sent!' : `📱 Send job link to ${phase.sub_name}`}
-                            </button>
-                          )}
 
-                          {subs.length > 0 && (
-                            <select
-                              value={phase.sub_id || ''}
-                              onChange={async e => {
-                                const sub = subs.find(s => s.id === e.target.value)
-                                if (sub) {
-                                  await supabase.from('phases').update({ sub_id: sub.id, sub_name: sub.name, sub_phone: sub.phone || '' }).eq('id', phase.id)
+                          {/* Existing subs on this phase */}
+                          {(phaseSubs[phase.id] || []).map((ps: any) => (
+                            <div key={ps.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', background: '#0A0C10', border: '1px solid #1E2128', borderRadius: '8px', padding: '8px 12px' }}>
+                              <div style={{ width: '28px', height: '28px', background: '#1E2128', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <span style={{ fontSize: '11px', fontWeight: '700', color: '#F97316' }}>{ps.sub_name?.charAt(0)?.toUpperCase()}</span>
+                              </div>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <p style={{ fontSize: '12px', fontWeight: '600', color: '#F9FAFB', margin: 0 }}>{ps.sub_name}</p>
+                                <p style={{ fontSize: '11px', color: '#4B5563', margin: 0 }}>{ps.sub_email || ps.sub_phone || 'No contact'}</p>
+                              </div>
+                              <button
+                                onClick={async () => {
+                                  setSendingLink(ps.id)
+                                  await fetch('/api/send-job-link', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ phaseId: phase.id, subName: ps.sub_name, subPhone: ps.sub_phone, subEmail: ps.sub_email })
+                                  })
+                                  setSendingLink(null)
+                                  setSentLink(prev => ({ ...prev, [ps.id]: true }))
+                                  setTimeout(() => setSentLink(prev => ({ ...prev, [ps.id]: false })), 3000)
+                                }}
+                                disabled={sendingLink === ps.id}
+                                style={{ background: sentLink[ps.id] ? '#14532D' : '#0F1929', border: `1px solid ${sentLink[ps.id] ? '#166534' : '#1D4ED8'}`, borderRadius: '6px', padding: '4px 10px', fontSize: '11px', color: sentLink[ps.id] ? '#4ADE80' : '#60A5FA', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0 }}
+                              >
+                                {sendingLink === ps.id ? '...' : sentLink[ps.id] ? '✓ Sent!' : '📱 Send link'}
+                              </button>
+                              <button
+                                onClick={async () => {
+                                  await supabase.from('phase_subs').delete().eq('id', ps.id)
                                   await load()
-                                }
-                              }}
-                              style={{ background: '#0A0C10', border: '1px solid #1E2128', borderRadius: '8px', padding: '7px 12px', color: '#4B5563', fontSize: '11px', width: '100%', outline: 'none', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", marginTop: '6px' }}
-                            >
-                              <option value="">— Or pick from existing contractors —</option>
-                              {subs.map(sub => (
-                                <option key={sub.id} value={sub.id}>{sub.name}{sub.trade ? ` · ${sub.trade}` : ''}</option>
-                              ))}
-                            </select>
-                          )}
+                                }}
+                                style={{ background: 'none', border: 'none', color: '#4B5563', fontSize: '16px', cursor: 'pointer', flexShrink: 0, padding: '0 4px' }}
+                              >×</button>
+                            </div>
+                          ))}
+
+                          {/* Add new sub form */}
+                          <AddSubForm
+                            phaseId={phase.id}
+                            subs={subs}
+                            onAdd={async (name: string, phone: string, email: string) => {
+                              await supabase.from('phase_subs').insert({ phase_id: phase.id, sub_name: name, sub_phone: phone || null, sub_email: email || null })
+                              await load()
+                            }}
+                          />
                         </div>
                       )}
 
