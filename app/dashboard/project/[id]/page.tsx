@@ -250,27 +250,27 @@ export default function ProjectPage() {
                               style={{ background: '#0A0C10', border: '1px solid #1E2128', borderRadius: '8px', padding: '7px 12px', color: '#D1D5DB', fontSize: '12px', outline: 'none', fontFamily: "'DM Sans', sans-serif" }}
                             />
                             <input
-                              type="tel"
-                              defaultValue={phase.sub_phone || ''}
+                              type="email"
+                              defaultValue={phase.sub_email || ''}
                               onBlur={async e => {
-                                if (e.target.value !== (phase.sub_phone || '')) {
-                                  await supabase.from('phases').update({ sub_phone: e.target.value }).eq('id', phase.id)
+                                if (e.target.value !== (phase.sub_email || '')) {
+                                  await supabase.from('phases').update({ sub_email: e.target.value }).eq('id', phase.id)
                                   await load()
                                 }
                               }}
-                              placeholder="Phone +1..."
+                              placeholder="Email"
                               style={{ background: '#0A0C10', border: '1px solid #1E2128', borderRadius: '8px', padding: '7px 12px', color: '#D1D5DB', fontSize: '12px', outline: 'none', fontFamily: "'DM Sans', sans-serif" }}
                             />
                           </div>
                           {/* Send Link button */}
-                          {phase.sub_name && phase.sub_phone && phase.status !== 'complete' && (
+                          {phase.sub_name && (phase.sub_phone || phase.sub_email) && phase.status !== 'complete' && (
                             <button
                               onClick={async () => {
                                 setSendingLink(phase.id)
                                 const res = await fetch('/api/send-job-link', {
                                   method: 'POST',
                                   headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ phaseId: phase.id, subName: phase.sub_name, subPhone: phase.sub_phone })
+                                  body: JSON.stringify({ phaseId: phase.id, subName: phase.sub_name, subPhone: phase.sub_phone, subEmail: phase.sub_email })
                                 })
                                 const data = await res.json()
                                 setSendingLink(null)
