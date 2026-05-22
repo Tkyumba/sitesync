@@ -149,13 +149,40 @@ export default function JobPage() {
           <p style={{ fontSize: '13px', color: '#4B5563', margin: 0, fontFamily: "'DM Mono', monospace" }}>{project?.address}</p>
         </div>
 
-        {/* Ready to start */}
+        {/* Ready to start — landing screen */}
         {status === 'ready' && (
-          <div style={{ background: '#111318', border: '1px solid #1E2128', borderRadius: '16px', padding: '24px', textAlign: 'center' }}>
-            <p style={{ fontSize: '14px', color: '#9CA3AF', margin: '0 0 20px' }}>Tap below when you arrive on site and are ready to begin.</p>
-            <button onClick={markStarted} style={{ width: '100%', background: 'linear-gradient(135deg, #3B82F6, #2563EB)', border: 'none', borderRadius: '14px', padding: '18px', color: '#FFF', fontSize: '16px', fontWeight: '700', cursor: 'pointer', boxShadow: '0 4px 20px rgba(59,130,246,0.3)' }}>
+          <div>
+            {/* Previous phase done indicator */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '20px' }}>
+              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22C55E', flexShrink: 0 }} />
+              <span style={{ fontSize: '12px', color: '#22C55E' }}>Previous phase complete — you're up next</span>
+            </div>
+
+            {/* Info card */}
+            <div style={{ background: '#111318', border: '1px solid #1E2128', borderRadius: '12px', padding: '16px', marginBottom: '16px' }}>
+              {[
+                { label: 'Phase', value: phase?.name },
+                { label: 'Project', value: project?.name },
+                { label: 'Address', value: project?.address },
+              ].map(row => row.value && (
+                <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid #1A1C22' }}>
+                  <span style={{ fontSize: '12px', color: '#6B7280' }}>{row.label}</span>
+                  <span style={{ fontSize: '12px', color: '#F9FAFB', fontWeight: '500' }}>{row.value}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Instructions */}
+            <p style={{ fontSize: '13px', color: '#6B7280', margin: '0 0 20px', lineHeight: 1.6 }}>
+              Tap the button below when you arrive on site. You'll upload photos and mark complete when done.
+            </p>
+
+            {/* Start button */}
+            <button onClick={markStarted} style={{ width: '100%', background: '#2563EB', border: 'none', borderRadius: '14px', padding: '18px', color: '#FFF', fontSize: '16px', fontWeight: '500', cursor: 'pointer' }}>
               I'm on site — Start Job
             </button>
+
+            <p style={{ fontSize: '10px', color: '#374151', margin: '12px 0 0', textAlign: 'center' }}>This link is unique to you · No login needed</p>
           </div>
         )}
 
