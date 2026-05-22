@@ -239,20 +239,24 @@ export default function ProjectPage() {
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                             <input
                               type="text"
-                              value={phase.sub_name || ''}
-                              onChange={async e => {
-                                await supabase.from('phases').update({ sub_name: e.target.value }).eq('id', phase.id)
-                                await load()
+                              defaultValue={phase.sub_name || ''}
+                              onBlur={async e => {
+                                if (e.target.value !== (phase.sub_name || '')) {
+                                  await supabase.from('phases').update({ sub_name: e.target.value }).eq('id', phase.id)
+                                  await load()
+                                }
                               }}
                               placeholder="Sub name"
                               style={{ background: '#0A0C10', border: '1px solid #1E2128', borderRadius: '8px', padding: '7px 12px', color: '#D1D5DB', fontSize: '12px', outline: 'none', fontFamily: "'DM Sans', sans-serif" }}
                             />
                             <input
                               type="tel"
-                              value={phase.sub_phone || ''}
-                              onChange={async e => {
-                                await supabase.from('phases').update({ sub_phone: e.target.value }).eq('id', phase.id)
-                                await load()
+                              defaultValue={phase.sub_phone || ''}
+                              onBlur={async e => {
+                                if (e.target.value !== (phase.sub_phone || '')) {
+                                  await supabase.from('phases').update({ sub_phone: e.target.value }).eq('id', phase.id)
+                                  await load()
+                                }
                               }}
                               placeholder="Phone +1..."
                               style={{ background: '#0A0C10', border: '1px solid #1E2128', borderRadius: '8px', padding: '7px 12px', color: '#D1D5DB', fontSize: '12px', outline: 'none', fontFamily: "'DM Sans', sans-serif" }}
