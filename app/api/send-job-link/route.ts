@@ -49,25 +49,28 @@ export async function POST(req: NextRequest) {
         from: 'SiteSync <onboarding@resend.dev>',
         to: subEmail,
         subject: `Your job is ready — ${phaseName} on ${projectName}`,
-        html: `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#0A0C10;font-family:'Helvetica Neue',Arial,sans-serif;">
-  <div style="max-width:560px;margin:40px auto;background:#111318;border:1px solid #1E2128;border-radius:16px;overflow:hidden;">
-    <div style="background:linear-gradient(135deg,#F97316,#EA580C);padding:24px 28px;">
-      <span style="color:white;font-size:18px;font-weight:700;">SiteSync</span>
+        html: `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f4f4f4;font-family:'Helvetica Neue',Arial,sans-serif;">
+  <div style="max-width:560px;margin:40px auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+    <div style="background:#F97316;padding:24px 28px;">
+      <span style="color:white;font-size:20px;font-weight:700;letter-spacing:-0.3px;">SiteSync</span>
     </div>
-    <div style="padding:28px;">
-      <p style="color:#9CA3AF;font-size:13px;margin:0 0 8px;">Hey ${subName},</p>
-      <h1 style="color:#F9FAFB;font-size:22px;font-weight:700;margin:0 0 16px;">Your job is ready</h1>
-      <div style="background:#0A1F0A;border:1px solid #166534;border-radius:12px;padding:16px 20px;margin-bottom:16px;">
-        <p style="color:#4ADE80;font-size:11px;font-weight:600;text-transform:uppercase;margin:0 0 4px;">Your Phase</p>
-        <p style="color:#F9FAFB;font-size:18px;font-weight:700;margin:0;">${phaseName}</p>
+    <div style="padding:32px 28px;">
+      <p style="color:#6B7280;font-size:14px;margin:0 0 6px;">Hey ${subName},</p>
+      <h1 style="color:#111318;font-size:24px;font-weight:700;margin:0 0 20px;letter-spacing:-0.4px;">Your job is ready 🏗</h1>
+      <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:16px 20px;margin-bottom:16px;">
+        <p style="color:#C2410C;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;margin:0 0 4px;">Your Phase</p>
+        <p style="color:#111318;font-size:20px;font-weight:700;margin:0;">${phaseName}</p>
       </div>
-      <div style="background:#0A0C10;border:1px solid #1E2128;border-radius:12px;padding:14px 18px;margin-bottom:20px;">
-        <p style="color:#F9FAFB;font-size:14px;font-weight:600;margin:0 0 2px;">${projectName}</p>
-        <p style="color:#6B7280;font-size:12px;margin:0;font-family:monospace;">${projectAddress}</p>
+      <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:14px 18px;margin-bottom:24px;">
+        <p style="color:#111318;font-size:14px;font-weight:600;margin:0 0 2px;">${projectName}</p>
+        <p style="color:#6B7280;font-size:13px;margin:0;">${projectAddress}</p>
       </div>
-      <p style="color:#9CA3AF;font-size:13px;margin:0 0 20px;">Tap the button below to view your job, mark it started, upload photos, and complete it — no login needed.</p>
-      <a href="${magicLink}" style="display:block;background:linear-gradient(135deg,#F97316,#EA580C);color:white;text-align:center;padding:16px;border-radius:10px;text-decoration:none;font-weight:700;font-size:15px;">Open My Job →</a>
-      <p style="color:#374151;font-size:11px;margin:20px 0 0;text-align:center;">This link is unique to you and expires in 7 days.</p>
+      <p style="color:#6B7280;font-size:14px;margin:0 0 24px;line-height:1.6;">Tap the button below to view your job details, mark it started when you arrive on site, upload your completion photos, and mark it done — no login needed.</p>
+      <a href="${magicLink}" style="display:block;background:#F97316;color:white;text-align:center;padding:16px;border-radius:10px;text-decoration:none;font-weight:700;font-size:16px;">Open My Job →</a>
+      <p style="color:#9CA3AF;font-size:12px;margin:20px 0 0;text-align:center;">This link is unique to you and expires in 7 days.</p>
+    </div>
+    <div style="background:#F9FAFB;padding:16px 28px;border-top:1px solid #E5E7EB;">
+      <p style="color:#9CA3AF;font-size:12px;margin:0;">SiteSync · Built for Legacy Homes of Medina</p>
     </div>
   </div></body></html>`
       })
