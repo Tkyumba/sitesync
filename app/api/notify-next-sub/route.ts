@@ -87,6 +87,15 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Log activity
+    await supabase.from('activity_log').insert({
+      project_id: projectId,
+      phase_id: completedPhaseId,
+      action: `Phase "${completedPhase.name}" marked complete`,
+      actor_name: 'Subcontractor',
+      metadata: { next_phase: nextPhase?.name, notified: results.notified.length }
+    })
+
     return NextResponse.json(results)
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 })

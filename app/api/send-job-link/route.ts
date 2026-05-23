@@ -6,6 +6,11 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
+
 export async function POST(req: NextRequest) {
   const { phaseId, subName, subPhone, subEmail } = await req.json()
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://sitesync-green.vercel.app'
@@ -96,6 +101,15 @@ export async function POST(req: NextRequest) {
       })
     }).catch(() => {})
   }
+
+  // Log activity
+  await supabase.from('activity_log').insert({
+    project_id: phase?.project_id,
+    phase_id: phaseId,
+    action: `Job link sent to ${subName} for "${phaseName}"`,
+    actor_name: 'Manager',
+    metadata: { sub_name: subName, sub_email: subEmail, sub_phone: subPhone }
+  })
 
   return NextResponse.json({ ok: true, magicLink })
 }

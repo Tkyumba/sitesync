@@ -90,7 +90,7 @@ export default function OperationsPage() {
             <div style={{ width: '28px', height: '28px', background: 'linear-gradient(135deg, #F97316, #EA580C)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
             </div>
-            <span style={{ fontSize: '16px', fontWeight: '700', color: '#FFFFFF' }}>SiteSync</span>
+            <span style={{ fontSize: '16px', fontWeight: '700', color: '#FFFFFF', cursor: 'pointer' }} onClick={() => router.push('/dashboard/operations')}>SiteSync</span>
           </div>
           <span style={{ color: '#2D3139' }}>›</span>
           <span style={{ fontSize: '14px', color: '#9CA3AF', fontWeight: '500' }}>Operations</span>

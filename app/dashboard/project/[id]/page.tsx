@@ -63,6 +63,7 @@ export default function ProjectPage() {
   const [newPhase, setNewPhase] = useState('')
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState<'board' | 'activity'>('board')
+  const [activityLog, setActivityLog] = useState<any[]>([])
   const [scheduledTimes, setScheduledTimes] = useState<{ [key: string]: string }>({})
   const [phaseSubs, setPhaseSubs] = useState<{ [key: string]: any[] }>({})
   const [sendingLink, setSendingLink] = useState<string | null>(null)
@@ -99,6 +100,8 @@ export default function ProjectPage() {
     const { data: phaseData } = await supabase.from('phases').select('*, users(name, trade)').eq('project_id', projectId).order('order_index', { ascending: true })
     setPhases(phaseData || [])
     const { data: subData } = await supabase.from('users').select('*').eq('role', 'sub')
+    const { data: activityData } = await supabase.from('activity_log').select('*').eq('project_id', projectId).order('created_at', { ascending: false }).limit(50)
+    setActivityLog(activityData || [])
     setSubs(subData || [])
     const { data: phaseSubData } = await supabase.from('phase_subs').select('*').in('phase_id', (phaseData || []).map((p: any) => p.id))
     const grouped: { [key: string]: any[] } = {}
@@ -400,8 +403,9 @@ export default function ProjectPage() {
           )}
         </div>
 
-        {/* Add phase — manager only */}
-        {isManager && (
+        </div>}
+
+        {activeTab === 'board' && isManager && (
           <div style={{ marginTop: '16px' }}>
             <p style={{ fontSize: '11px', fontWeight: '600', color: '#4B5563', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Quick add</p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '12px' }}>
