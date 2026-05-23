@@ -401,8 +401,6 @@ export default function ProjectPage() {
               })}
             </div>
           )}
-        </div>
-
         </div>}
 
         {activeTab === 'board' && isManager && (
