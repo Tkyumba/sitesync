@@ -227,7 +227,7 @@ export default function ProjectPage() {
           )}
         </div>
 
-        {/* Phase Ticket Board */}
+        {activeTab === 'board' && (
         <div style={{ marginBottom: '16px' }}>
           <h2 style={{ fontSize: '13px', fontWeight: '600', color: '#6B7280', margin: '0 0 14px', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Phase Board</h2>
 
@@ -401,7 +401,8 @@ export default function ProjectPage() {
               })}
             </div>
           )}
-        </div>}
+        </div>
+        )}
 
         {activeTab === 'board' && isManager && (
           <div style={{ marginTop: '16px' }}>
