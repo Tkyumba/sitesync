@@ -96,7 +96,7 @@ export default function OperationsPage() {
           <span style={{ fontSize: '14px', color: '#9CA3AF', fontWeight: '500' }}>Operations</span>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button onClick={() => router.push('/dashboard')} style={{ background: 'none', border: '1px solid #1E2128', borderRadius: '8px', padding: '5px 12px', color: '#6B7280', fontSize: '13px', cursor: 'pointer' }}>← Dashboard</button>
+          <button onClick={() => router.push('/dashboard')} style={{ background: 'none', border: '1px solid #1E2128', borderRadius: '8px', padding: '5px 12px', color: '#6B7280', fontSize: '13px', cursor: 'pointer' }}>All Projects</button>
           <button onClick={async () => { await supabase.auth.signOut(); router.push('/login') }} style={{ background: 'none', border: '1px solid #1E2128', borderRadius: '8px', padding: '5px 12px', color: '#6B7280', fontSize: '13px', cursor: 'pointer' }}>Sign out</button>
         </div>
       </nav>
@@ -106,7 +106,7 @@ export default function OperationsPage() {
         {/* Header */}
         <div style={{ marginBottom: '24px' }}>
           <p style={{ fontSize: '12px', color: '#4B5563', margin: '0 0 4px', fontFamily: "'DM Mono', monospace" }}>{today}</p>
-          <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#F9FAFB', margin: '0 0 4px', letterSpacing: '-0.5px' }}>Good morning, {user.name?.split(' ')[0]} 👋</h1>
+          <h1 style={{ fontSize: '24px', fontWeight: '700', color: '#F9FAFB', margin: '0 0 4px', letterSpacing: '-0.5px' }}>Good morning, {user.name} 👋</h1>
           <p style={{ fontSize: '13px', color: '#6B7280', margin: 0 }}>{projects.length} active build{projects.length !== 1 ? 's' : ''} across Legacy Homes</p>
         </div>
 
