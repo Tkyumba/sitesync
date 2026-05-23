@@ -30,6 +30,8 @@ export default function LoginPage() {
 
     if (userData?.role === 'sub') {
       router.push('/jobs')
+    } else if (userData?.role === 'manager' || userData?.role === 'vp') {
+      router.push('/dashboard/operations')
     } else {
       router.push('/dashboard')
     }
