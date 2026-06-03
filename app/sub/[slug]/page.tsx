@@ -25,7 +25,7 @@ export default function SubPage() {
       const { data: phaseData } = await supabase
         .from('phases')
         .select('*, projects(name)')
-        .eq('assigned_sub_id', userData.id)
+        .eq('sub_id', userData.id)
         .order('created_at', { ascending: false })
 
       setPhases(phaseData || [])
