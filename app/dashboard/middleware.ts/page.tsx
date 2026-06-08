@@ -103,7 +103,7 @@ export default function NewProjectPage() {
             <button
               type="submit"
               disabled={loading}
-              style={{
+              style={{iphone 16
                 width: '100%', marginTop: '8px',
                 background: loading ? '#7C3A1A' : 'linear-gradient(135deg, #F97316, #EA580C)',
                 border: 'none', borderRadius: '10px', padding: '13px',
