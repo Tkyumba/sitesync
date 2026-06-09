@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        from: 'SiteSync <onboarding@resend.dev>',
+        from: 'SiteSync <noreply@sitesyncapp.org>',
         to: subEmail,
         subject: `Your job is ready — ${phaseName} on ${projectName}`,
         html: `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f4f4f4;font-family:'Helvetica Neue',Arial,sans-serif;">
