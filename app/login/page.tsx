@@ -32,7 +32,7 @@ export default function LoginPage() {
   router.push('/jobs')
 } else {
   router.push('/dashboard/operations')
-}S
+}
   }
 
   return (
