@@ -20,6 +20,8 @@ export default function ContractorsPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [search, setSearch] = useState('')
+  const [editingTrade, setEditingTrade] = useState<string | null>(null)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const supabase = createClient()
   const router = useRouter()
 
@@ -42,24 +44,14 @@ export default function ContractorsPage() {
     setError('')
     setSuccess('')
 
-    // Create auth user with a temp password, then insert into users table
     const tempPassword = Math.random().toString(36).slice(2) + 'Ss1!'
-    const { data: authData, error: authError } = await supabase.auth.admin
-      ? { data: null, error: { message: 'admin not available client-side' } }
-      : { data: null, error: { message: 'admin not available client-side' } }
-
-    // Instead: use signUp and they'll get an email to set password
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email: form.email,
       password: tempPassword,
       options: { emailRedirectTo: `${window.location.origin}/login` }
     })
 
-    if (signUpError) {
-      setError(signUpError.message)
-      setLoading(false)
-      return
-    }
+    if (signUpError) { setError(signUpError.message); setLoading(false); return }
 
     if (signUpData.user) {
       const { error: insertError } = await supabase.from('users').insert({
@@ -70,29 +62,38 @@ export default function ContractorsPage() {
         trade: form.trade || null,
         role: 'sub'
       })
-      if (insertError) {
-        setError(insertError.message)
-        setLoading(false)
-        return
-      }
+      if (insertError) { setError(insertError.message); setLoading(false); return }
     }
 
-    // Send proper invite email
     fetch('/api/invite-contractor', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: form.name, email: form.email, trade: form.trade, tempPassword })
     }).catch(() => {})
 
-    setSuccess(`${form.name} added and invited. They'll get an email with login details.`)
+    setSuccess(`${form.name} added and invited.`)
     setForm({ name: '', email: '', phone: '', trade: '' })
     setShowForm(false)
     setLoading(false)
     await load()
   }
 
+  async function updateTrade(subId: string, trade: string) {
+    await supabase.from('users').update({ trade }).eq('id', subId)
+    setEditingTrade(null)
+    await load()
+  }
+
+  async function deleteSub(subId: string, name: string) {
+    if (!confirm(`Remove ${name} from contractors? This won't delete their account.`)) return
+    setDeletingId(subId)
+    await supabase.from('users').update({ role: 'inactive' }).eq('id', subId)
+    setDeletingId(null)
+    await load()
+  }
+
   if (!user) return (
-    <div style={{ minHeight: '100vh', background: '#0A0C10', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: '#0A0C10', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <p style={{ color: '#4B5563' }}>Loading...</p>
     </div>
   )
@@ -107,8 +108,7 @@ export default function ContractorsPage() {
     <div style={{ minHeight: '100vh', background: '#0A0C10', fontFamily: "'DM Sans', -apple-system, sans-serif" }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');`}</style>
 
-      {/* Nav */}
-      <nav style={{ background: '#111318', borderBottom: '1px solid #1E2128', padding: '0 28px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 50 }}>
+      <nav style={{ background: '#111318', borderBottom: '1px solid #1E2128', padding: '0 28px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky' as const, top: 0, zIndex: 50 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <div onClick={() => router.push('/dashboard')} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
             <div style={{ width: '28px', height: '28px', background: 'linear-gradient(135deg, #F97316, #EA580C)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -123,30 +123,23 @@ export default function ContractorsPage() {
       </nav>
 
       <div style={{ padding: '28px', maxWidth: '800px', margin: '0 auto' }}>
-
-        {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
           <div>
             <h1 style={{ fontSize: '22px', fontWeight: '700', color: '#F9FAFB', margin: '0 0 4px', letterSpacing: '-0.4px' }}>Contractors</h1>
             <p style={{ fontSize: '13px', color: '#6B7280', margin: 0 }}>{subs.length} subcontractor{subs.length !== 1 ? 's' : ''} in system</p>
           </div>
-          <button
-            onClick={() => { setShowForm(!showForm); setError(''); setSuccess('') }}
-            style={{ background: showForm ? '#1E2128' : 'linear-gradient(135deg, #F97316, #EA580C)', border: 'none', borderRadius: '9px', padding: '9px 18px', color: '#FFF', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}
-          >
+          <button onClick={() => { setShowForm(!showForm); setError(''); setSuccess('') }}
+            style={{ background: showForm ? '#1E2128' : 'linear-gradient(135deg, #F97316, #EA580C)', border: 'none', borderRadius: '9px', padding: '9px 18px', color: '#FFF', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>
             {showForm ? 'Cancel' : '+ Add Contractor'}
           </button>
         </div>
 
-        {/* Success banner */}
         {success && (
-          <div style={{ background: '#0A1F0A', border: '1px solid #166534', borderRadius: '10px', padding: '12px 16px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '16px' }}>✓</span>
-            <p style={{ fontSize: '13px', color: '#4ADE80', margin: 0 }}>{success}</p>
+          <div style={{ background: '#0A1F0A', border: '1px solid #166534', borderRadius: '10px', padding: '12px 16px', marginBottom: '16px' }}>
+            <p style={{ fontSize: '13px', color: '#4ADE80', margin: 0 }}>✓ {success}</p>
           </div>
         )}
 
-        {/* Add form */}
         {showForm && (
           <div style={{ background: '#111318', border: '1px solid #1E2128', borderRadius: '14px', padding: '20px 24px', marginBottom: '20px' }}>
             <p style={{ fontSize: '14px', fontWeight: '600', color: '#F9FAFB', margin: '0 0 16px' }}>New Contractor</p>
@@ -157,39 +150,27 @@ export default function ContractorsPage() {
                   { label: 'Email *', key: 'email', placeholder: 'mike@torresco.com', type: 'email' },
                   { label: 'Phone', key: 'phone', placeholder: '(330) 555-0192', type: 'tel' },
                 ].map(field => (
-                  <div key={field.key} style={field.key === 'phone' ? {} : {}}>
-                    <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', color: '#6B7280', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{field.label}</label>
-                    <input
-                      type={field.type}
-                      value={(form as any)[field.key]}
+                  <div key={field.key}>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', color: '#6B7280', marginBottom: '5px', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>{field.label}</label>
+                    <input type={field.type} value={(form as any)[field.key]}
                       onChange={e => setForm(prev => ({ ...prev, [field.key]: e.target.value }))}
-                      placeholder={field.placeholder}
-                      required={field.label.includes('*')}
-                      style={{ width: '100%', boxSizing: 'border-box', background: '#0A0C10', border: '1px solid #1E2128', borderRadius: '9px', padding: '10px 14px', color: '#F9FAFB', fontSize: '13px', outline: 'none', fontFamily: "'DM Sans', sans-serif" }}
+                      placeholder={field.placeholder} required={field.label.includes('*')}
+                      style={{ width: '100%', boxSizing: 'border-box' as const, background: '#0A0C10', border: '1px solid #1E2128', borderRadius: '9px', padding: '10px 14px', color: '#F9FAFB', fontSize: '13px', outline: 'none' }}
                       onFocus={e => e.target.style.borderColor = '#F97316'}
                       onBlur={e => e.target.style.borderColor = '#1E2128'}
                     />
                   </div>
                 ))}
                 <div>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', color: '#6B7280', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Trade</label>
-                  <select
-                    value={form.trade}
-                    onChange={e => setForm(prev => ({ ...prev, trade: e.target.value }))}
-                    style={{ width: '100%', boxSizing: 'border-box', background: '#0A0C10', border: '1px solid #1E2128', borderRadius: '9px', padding: '10px 14px', color: form.trade ? '#F9FAFB' : '#4B5563', fontSize: '13px', outline: 'none', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}
-                  >
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: '600', color: '#6B7280', marginBottom: '5px', textTransform: 'uppercase' as const, letterSpacing: '0.06em' }}>Trade</label>
+                  <select value={form.trade} onChange={e => setForm(prev => ({ ...prev, trade: e.target.value }))}
+                    style={{ width: '100%', boxSizing: 'border-box' as const, background: '#0A0C10', border: '1px solid #1E2128', borderRadius: '9px', padding: '10px 14px', color: form.trade ? '#F9FAFB' : '#4B5563', fontSize: '13px', outline: 'none', cursor: 'pointer' }}>
                     <option value="">— Select trade —</option>
                     {TRADES.map(t => <option key={t} value={t}>{t}</option>)}
                   </select>
                 </div>
               </div>
-
-              {error && (
-                <div style={{ background: '#1F0A0A', border: '1px solid #7F1D1D', borderRadius: '8px', padding: '10px 14px', marginBottom: '12px' }}>
-                  <p style={{ fontSize: '13px', color: '#FCA5A5', margin: 0 }}>{error}</p>
-                </div>
-              )}
-
+              {error && <div style={{ background: '#1F0A0A', border: '1px solid #7F1D1D', borderRadius: '8px', padding: '10px 14px', marginBottom: '12px' }}><p style={{ fontSize: '13px', color: '#FCA5A5', margin: 0 }}>{error}</p></div>}
               <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
                 <button type="button" onClick={() => setShowForm(false)} style={{ background: 'none', border: '1px solid #1E2128', borderRadius: '9px', padding: '9px 18px', color: '#6B7280', fontSize: '13px', cursor: 'pointer' }}>Cancel</button>
                 <button type="submit" disabled={loading} style={{ background: loading ? '#7C3A1A' : 'linear-gradient(135deg, #F97316, #EA580C)', border: 'none', borderRadius: '9px', padding: '9px 20px', color: '#FFF', fontSize: '13px', fontWeight: '600', cursor: loading ? 'not-allowed' : 'pointer' }}>
@@ -200,50 +181,58 @@ export default function ContractorsPage() {
           </div>
         )}
 
-        {/* Search */}
         {subs.length > 0 && (
           <div style={{ marginBottom: '14px' }}>
-            <input
-              type="text"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
+            <input type="text" value={search} onChange={e => setSearch(e.target.value)}
               placeholder="Search by name, trade, or email..."
-              style={{ width: '100%', boxSizing: 'border-box', background: '#111318', border: '1px solid #1E2128', borderRadius: '10px', padding: '11px 16px', color: '#F9FAFB', fontSize: '13px', outline: 'none', fontFamily: "'DM Sans', sans-serif" }}
+              style={{ width: '100%', boxSizing: 'border-box' as const, background: '#111318', border: '1px solid #1E2128', borderRadius: '10px', padding: '11px 16px', color: '#F9FAFB', fontSize: '13px', outline: 'none' }}
               onFocus={e => e.target.style.borderColor = '#F97316'}
               onBlur={e => e.target.style.borderColor = '#1E2128'}
             />
           </div>
         )}
 
-        {/* Contractor list */}
         {subs.length === 0 ? (
-          <div style={{ background: '#111318', border: '1px dashed #1E2128', borderRadius: '12px', padding: '60px', textAlign: 'center' }}>
+          <div style={{ background: '#111318', border: '1px dashed #1E2128', borderRadius: '12px', padding: '60px', textAlign: 'center' as const }}>
             <p style={{ color: '#4B5563', fontSize: '14px', margin: '0 0 6px' }}>No contractors yet</p>
             <p style={{ color: '#374151', fontSize: '12px', margin: 0 }}>Add your first subcontractor to start assigning them to phases</p>
           </div>
         ) : filtered.length === 0 ? (
-          <p style={{ color: '#4B5563', fontSize: '13px', textAlign: 'center', padding: '40px 0' }}>No contractors match "{search}"</p>
+          <p style={{ color: '#4B5563', fontSize: '13px', textAlign: 'center' as const, padding: '40px 0' }}>No contractors match "{search}"</p>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column' as const, gap: '6px' }}>
             {filtered.map(sub => (
-              <div key={sub.id} style={{ background: '#111318', border: '1px solid #1E2128', borderRadius: '12px', padding: '14px 18px', display: 'grid', gridTemplateColumns: '1fr auto', alignItems: 'center', gap: '12px' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
-                    <div style={{ width: '30px', height: '30px', background: '#1E2128', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <span style={{ fontSize: '12px', fontWeight: '700', color: '#F97316' }}>{sub.name?.charAt(0)?.toUpperCase()}</span>
+              <div key={sub.id} style={{ background: '#111318', border: '1px solid #1E2128', borderRadius: '12px', padding: '14px 18px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{ width: '36px', height: '36px', background: '#1E2128', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <span style={{ fontSize: '14px', fontWeight: '700', color: '#F97316' }}>{sub.name?.charAt(0)?.toUpperCase()}</span>
                     </div>
                     <div>
-                      <p style={{ fontSize: '14px', fontWeight: '600', color: '#F9FAFB', margin: 0 }}>{sub.name}</p>
+                      <p style={{ fontSize: '14px', fontWeight: '600', color: '#F9FAFB', margin: '0 0 2px' }}>{sub.name}</p>
                       <p style={{ fontSize: '12px', color: '#6B7280', margin: 0, fontFamily: "'DM Mono', monospace" }}>{sub.email}</p>
                     </div>
                   </div>
-                  {sub.phone && <p style={{ fontSize: '12px', color: '#4B5563', margin: '4px 0 0 40px', fontFamily: "'DM Mono', monospace" }}>{sub.phone}</p>}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {editingTrade === sub.id ? (
+                      <select defaultValue={sub.trade || ''}
+                        onChange={e => updateTrade(sub.id, e.target.value)}
+                        style={{ background: '#0A0C10', border: '1px solid #F97316', borderRadius: '8px', padding: '5px 10px', color: '#F9FAFB', fontSize: '12px', cursor: 'pointer' }}>
+                        <option value="">— Select trade —</option>
+                        {TRADES.map(t => <option key={t} value={t}>{t}</option>)}
+                      </select>
+                    ) : (
+                      <span onClick={() => setEditingTrade(sub.id)}
+                        style={{ background: sub.trade ? '#1A1F2E' : '#1E2128', border: `1px solid ${sub.trade ? '#1D4ED8' : '#374151'}`, borderRadius: '99px', padding: '4px 12px', fontSize: '11px', fontWeight: '600', color: sub.trade ? '#60A5FA' : '#4B5563', cursor: 'pointer', whiteSpace: 'nowrap' as const }}>
+                        {sub.trade || '+ Add trade'}
+                      </span>
+                    )}
+                    <button onClick={() => deleteSub(sub.id, sub.name)} disabled={deletingId === sub.id}
+                      style={{ background: 'none', border: '1px solid #2D1515', borderRadius: '8px', padding: '4px 10px', color: '#EF4444', fontSize: '12px', cursor: 'pointer' }}>
+                      {deletingId === sub.id ? '...' : 'Remove'}
+                    </button>
+                  </div>
                 </div>
-                {sub.trade && (
-                  <span style={{ background: '#1A1F2E', border: '1px solid #1D4ED8', borderRadius: '99px', padding: '4px 12px', fontSize: '11px', fontWeight: '600', color: '#60A5FA', whiteSpace: 'nowrap' }}>
-                    {sub.trade}
-                  </span>
-                )}
               </div>
             ))}
           </div>

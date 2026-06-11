@@ -29,12 +29,10 @@ export default function LoginPage() {
       .from('users').select('role').eq('id', data.user.id).single()
 
     if (userData?.role === 'sub') {
-      router.push('/jobs')
-    } else if (userData?.role === 'manager' || userData?.role === 'vp') {
-      router.push('/dashboard/operations')
-    } else {
-      router.push('/dashboard')
-    }
+  router.push('/jobs')
+} else {
+  router.push('/dashboard/operations')
+}S
   }
 
   return (
