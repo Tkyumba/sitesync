@@ -172,11 +172,20 @@ export default function OperationsPage() {
         )}
 
         {/* Ready to Send */}
-        {readyToSend.length > 0 && (
-          <Section title="✉ Ready to Send" color="#6B7280">
-            {readyToSend.map(phase => <PhaseRow key={phase.id} phase={phase} status={getPhaseStatus(phase)} />)}
-          </Section>
-        )}
+{readyToSend.length > 0 && (
+  <Section title="✉ Ready to Send" color="#6B7280">
+    {readyToSend.map(phase => (
+      <PhaseRow key={phase.id} phase={phase} status={getPhaseStatus(phase)}>
+        <button
+          onClick={() => resendLink(phase)}
+          disabled={resending === phase.id}
+          style={{ background: 'linear-gradient(135deg, #F97316, #EA580C)', border: 'none', borderRadius: '8px', padding: '5px 14px', color: '#FFF', fontSize: '12px', fontWeight: '600', cursor: 'pointer', boxShadow: '0 2px 8px rgba(249,115,22,0.3)' }}>
+          {resending === phase.id ? 'Sending...' : 'Send Link'}
+        </button>
+      </PhaseRow>
+    ))}
+  </Section>
+)}
 
         {/* Needs Assignment */}
         {needsAssignment.length > 0 && (
