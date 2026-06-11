@@ -80,16 +80,11 @@ export default function OperationsPage() {
   return (
     <div style={{ minHeight: '100vh', background: '#0F1117', fontFamily: "'Inter', -apple-system, sans-serif" }}>
       <nav style={{ background: '#1C1F26', borderBottom: '1px solid #2D3139', padding: '0 24px', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky' as const, top: 0, zIndex: 50 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div onClick={() => router.push('/dashboard')} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
           <div style={{ width: '30px', height: '30px', background: 'linear-gradient(135deg, #F97316, #EA580C)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           </div>
-          <div onClick={() => router.push('/dashboard')} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-  <div style={{ width: '30px', height: '30px', background: 'linear-gradient(135deg, #F97316, #EA580C)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-  </div>
-  <span style={{ fontSize: '18px', fontWeight: '700', color: '#FFFFFF' }}>SiteSync</span>
-</div>
+          <span style={{ fontSize: '18px', fontWeight: '700', color: '#FFFFFF' }}>SiteSync</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <span onClick={() => router.push('/dashboard')} style={{ fontSize: '13px', color: '#6B7280', cursor: 'pointer' }}>All Projects</span>
@@ -105,7 +100,6 @@ export default function OperationsPage() {
         <p style={{ fontSize: '24px', fontWeight: '700', color: '#FFFFFF', margin: '0 0 4px' }}>Good morning, {user.name?.split(' ')[0]} 👋</p>
         <p style={{ fontSize: '13px', color: '#6B7280', margin: '0 0 28px' }}>{phases.filter(p => p.projects).length} active phases across Legacy Homes</p>
 
-        {/* Stats */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '28px' }}>
           {[
             { label: 'In Progress', value: inProgress.length, color: '#3B82F6' },
@@ -120,7 +114,6 @@ export default function OperationsPage() {
           ))}
         </div>
 
-        {/* Overdue */}
         {overdue.length > 0 && (
           <div style={{ background: '#1C0A0A', border: '1px solid #7F1D1D', borderRadius: '12px', padding: '14px 18px', marginBottom: '20px' }}>
             <p style={{ fontSize: '12px', fontWeight: '600', color: '#EF4444', margin: '0 0 10px', textTransform: 'uppercase' as const, letterSpacing: '0.05em' }}>⚠ Overdue — Link sent 3+ days ago, no response</p>
@@ -130,9 +123,7 @@ export default function OperationsPage() {
                   <p style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', margin: '0 0 2px' }}>{phase.name}</p>
                   <p style={{ fontSize: '12px', color: '#6B7280', margin: 0 }}>{phase.projects?.name} · {phase.sub_name}</p>
                 </div>
-                <button
-                  onClick={() => resendLink(phase)}
-                  disabled={resending === phase.id}
+                <button onClick={() => resendLink(phase)} disabled={resending === phase.id}
                   style={{ background: '#7F1D1D', border: '1px solid #EF4444', borderRadius: '8px', padding: '6px 14px', color: '#FCA5A5', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
                   {resending === phase.id ? 'Sending...' : 'Resend Link'}
                 </button>
@@ -141,28 +132,23 @@ export default function OperationsPage() {
           </div>
         )}
 
-        {/* In Progress */}
         {inProgress.length > 0 && (
           <Section title="🔵 In Progress" color="#3B82F6">
             {inProgress.map(phase => <PhaseRow key={phase.id} phase={phase} status={getPhaseStatus(phase)} />)}
           </Section>
         )}
 
-        {/* Link Opened */}
         {linkOpened.length > 0 && (
           <Section title="👀 Link Opened — Awaiting Start" color="#A78BFA">
             {linkOpened.map(phase => <PhaseRow key={phase.id} phase={phase} status={getPhaseStatus(phase)} />)}
           </Section>
         )}
 
-        {/* Link Sent */}
         {linkSent.length > 0 && (
           <Section title="📨 Link Sent — Not Opened Yet" color="#F59E0B">
             {linkSent.map(phase => (
               <PhaseRow key={phase.id} phase={phase} status={getPhaseStatus(phase)}>
-                <button
-                  onClick={() => resendLink(phase)}
-                  disabled={resending === phase.id}
+                <button onClick={() => resendLink(phase)} disabled={resending === phase.id}
                   style={{ background: 'none', border: '1px solid #92400E', borderRadius: '8px', padding: '5px 12px', color: '#F59E0B', fontSize: '12px', cursor: 'pointer' }}>
                   {resending === phase.id ? 'Sending...' : 'Resend'}
                 </button>
@@ -171,29 +157,24 @@ export default function OperationsPage() {
           </Section>
         )}
 
-        {/* Ready to Send */}
-{readyToSend.length > 0 && (
-  <Section title="✉ Ready to Send" color="#6B7280">
-    {readyToSend.map(phase => (
-      <PhaseRow key={phase.id} phase={phase} status={getPhaseStatus(phase)}>
-        <button
-          onClick={() => resendLink(phase)}
-          disabled={resending === phase.id}
-          style={{ background: 'linear-gradient(135deg, #F97316, #EA580C)', border: 'none', borderRadius: '8px', padding: '5px 14px', color: '#FFF', fontSize: '12px', fontWeight: '600', cursor: 'pointer', boxShadow: '0 2px 8px rgba(249,115,22,0.3)' }}>
-          {resending === phase.id ? 'Sending...' : 'Send Link'}
-        </button>
-      </PhaseRow>
-    ))}
-  </Section>
-)}
+        {readyToSend.length > 0 && (
+          <Section title="✉ Ready to Send" color="#6B7280">
+            {readyToSend.map(phase => (
+              <PhaseRow key={phase.id} phase={phase} status={getPhaseStatus(phase)}>
+                <button onClick={() => resendLink(phase)} disabled={resending === phase.id}
+                  style={{ background: 'linear-gradient(135deg, #F97316, #EA580C)', border: 'none', borderRadius: '8px', padding: '5px 14px', color: '#FFF', fontSize: '12px', fontWeight: '600', cursor: 'pointer', boxShadow: '0 2px 8px rgba(249,115,22,0.3)' }}>
+                  {resending === phase.id ? 'Sending...' : 'Send Link'}
+                </button>
+              </PhaseRow>
+            ))}
+          </Section>
+        )}
 
-        {/* Needs Assignment */}
         {needsAssignment.length > 0 && (
           <Section title="⚠ Needs Assignment" color="#EF4444">
             {needsAssignment.map(phase => (
               <PhaseRow key={phase.id} phase={phase} status={getPhaseStatus(phase)}>
-                <button
-                  onClick={() => router.push(`/dashboard/project/${phase.project_id}`)}
+                <button onClick={() => router.push(`/dashboard/project/${phase.project_id}`)}
                   style={{ background: 'linear-gradient(135deg, #F97316, #EA580C)', border: 'none', borderRadius: '8px', padding: '5px 12px', color: '#FFF', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
                   Assign →
                 </button>
@@ -202,7 +183,6 @@ export default function OperationsPage() {
           </Section>
         )}
 
-        {/* Completed */}
         {completed.length > 0 && (
           <Section title="✅ Completed" color="#22C55E">
             {completed.map(phase => <PhaseRow key={phase.id} phase={phase} status={getPhaseStatus(phase)} />)}
