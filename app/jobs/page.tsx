@@ -97,7 +97,7 @@ export default function JobsPage() {
           </div>
           <span style={{ fontSize: '16px', fontWeight: '700', color: '#FFFFFF' }}>SiteSync</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div onClick={() => router.push('/dashboard')} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
           <span style={{ fontSize: '12px', color: '#6B7280' }}>{user.name}</span>
           <button onClick={async () => { await supabase.auth.signOut(); router.push('/login') }} style={{ background: 'none', border: '1px solid #1E2128', borderRadius: '8px', padding: '5px 10px', color: '#6B7280', fontSize: '12px', cursor: 'pointer' }}>Out</button>
         </div>

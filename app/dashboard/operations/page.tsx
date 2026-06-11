@@ -84,7 +84,12 @@ export default function OperationsPage() {
           <div style={{ width: '30px', height: '30px', background: 'linear-gradient(135deg, #F97316, #EA580C)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           </div>
-          <span style={{ fontSize: '18px', fontWeight: '700', color: '#FFFFFF' }}>SiteSync</span>
+          <div onClick={() => router.push('/dashboard')} style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+  <div style={{ width: '30px', height: '30px', background: 'linear-gradient(135deg, #F97316, #EA580C)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+  </div>
+  <span style={{ fontSize: '18px', fontWeight: '700', color: '#FFFFFF' }}>SiteSync</span>
+</div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <span onClick={() => router.push('/dashboard')} style={{ fontSize: '13px', color: '#6B7280', cursor: 'pointer' }}>All Projects</span>
