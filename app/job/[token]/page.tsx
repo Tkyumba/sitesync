@@ -29,6 +29,19 @@ export default function JobPage() {
     if (error || !tokenData) { setStatus('invalid'); return }
     if (new Date(tokenData.expires_at) < new Date()) { setStatus('expired'); return }
 
+    // Record that the link was opened
+    await supabase.from('job_tokens').update({
+      opened_at: new Date().toISOString(),
+      opened_count: (tokenData.opened_count || 0) + 1
+    }).eq('token', token)
+
+    // Update phase link_opened_at
+    if (!tokenData.phases?.link_opened_at) {
+      await supabase.from('phases').update({
+        link_opened_at: new Date().toISOString()
+      }).eq('id', tokenData.phases?.id)
+    }
+
     setJob(tokenData)
     setPhase(tokenData.phases)
     setProject(tokenData.phases?.projects)
@@ -65,7 +78,6 @@ export default function JobPage() {
     await supabase.from('phases').update({ status: 'complete', completed_at: new Date().toISOString() }).eq('id', phase.id)
     await supabase.from('job_tokens').update({ used: true }).eq('token', token)
 
-    // Notify next sub + managers
     fetch('/api/notify-next-sub', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -127,7 +139,6 @@ export default function JobPage() {
         @keyframes spin { to { transform: rotate(360deg) } }
       `}</style>
 
-      {/* Nav */}
       <nav style={{ background: '#111318', borderBottom: '1px solid #1E2128', padding: '0 20px', height: '56px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{ width: '28px', height: '28px', background: 'linear-gradient(135deg, #F97316, #EA580C)', borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -139,8 +150,6 @@ export default function JobPage() {
       </nav>
 
       <div style={{ padding: '24px 16px', maxWidth: '560px', margin: '0 auto' }}>
-
-        {/* Project info */}
         <div style={{ marginBottom: '20px' }}>
           <p style={{ fontSize: '11px', color: '#4B5563', margin: '0 0 3px', textTransform: 'uppercase', letterSpacing: '0.07em', fontWeight: '600', fontFamily: "'DM Mono', monospace" }}>
             {project?.name}
@@ -149,16 +158,12 @@ export default function JobPage() {
           <p style={{ fontSize: '13px', color: '#4B5563', margin: 0, fontFamily: "'DM Mono', monospace" }}>{project?.address}</p>
         </div>
 
-        {/* Ready to start — landing screen */}
         {status === 'ready' && (
           <div>
-            {/* Previous phase done indicator */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '20px' }}>
               <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22C55E', flexShrink: 0 }} />
               <span style={{ fontSize: '12px', color: '#22C55E' }}>Previous phase complete — you're up next</span>
             </div>
-
-            {/* Info card */}
             <div style={{ background: '#111318', border: '1px solid #1E2128', borderRadius: '12px', padding: '16px', marginBottom: '16px' }}>
               {[
                 { label: 'Phase', value: phase?.name },
@@ -171,30 +176,22 @@ export default function JobPage() {
                 </div>
               ))}
             </div>
-
-            {/* Instructions */}
             <p style={{ fontSize: '13px', color: '#6B7280', margin: '0 0 20px', lineHeight: 1.6 }}>
               Tap the button below when you arrive on site. You'll upload photos and mark complete when done.
             </p>
-
-            {/* Start button */}
             <button onClick={markStarted} style={{ width: '100%', background: '#2563EB', border: 'none', borderRadius: '14px', padding: '18px', color: '#FFF', fontSize: '16px', fontWeight: '500', cursor: 'pointer' }}>
               I'm on site — Start Job
             </button>
-
             <p style={{ fontSize: '10px', color: '#374151', margin: '12px 0 0', textAlign: 'center' }}>This link is unique to you · No login needed</p>
           </div>
         )}
 
-        {/* In progress — upload + complete */}
         {status === 'started' && (
           <div style={{ background: '#0D1520', border: '1px solid #1D4ED8', borderRadius: '16px', padding: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#3B82F6' }} />
               <span style={{ fontSize: '13px', color: '#60A5FA', fontWeight: '600' }}>In progress</span>
             </div>
-
-            {/* Photo previews */}
             {previews.length > 0 && (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginBottom: '12px' }}>
                 {previews.map((url, i) => (
@@ -208,8 +205,6 @@ export default function JobPage() {
                 ))}
               </div>
             )}
-
-            {/* Upload */}
             <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', boxSizing: 'border-box', minHeight: '110px', border: `2px dashed ${hasPhotos ? '#166534' : '#1E2128'}`, borderRadius: '12px', cursor: 'pointer', background: hasPhotos ? '#0A1F0A' : '#0A0C10', marginBottom: '12px', padding: '16px', transition: 'all 0.2s' }}>
               <div style={{ fontSize: '28px', marginBottom: '6px' }}>📷</div>
               <p style={{ color: hasPhotos ? '#4ADE80' : '#9CA3AF', fontSize: '14px', fontWeight: '600', margin: '0 0 2px' }}>
@@ -226,7 +221,6 @@ export default function JobPage() {
                 }}
               />
             </label>
-
             <textarea
               value={note}
               onChange={e => setNote(e.target.value)}
@@ -234,7 +228,6 @@ export default function JobPage() {
               rows={2}
               style={{ width: '100%', boxSizing: 'border-box', background: '#0A0C10', border: '1px solid #1E2128', borderRadius: '10px', padding: '10px 14px', color: '#F9FAFB', fontSize: '13px', outline: 'none', resize: 'none', marginBottom: '12px', fontFamily: "'DM Sans', sans-serif" }}
             />
-
             <button
               onClick={markComplete}
               disabled={uploading || !hasPhotos}

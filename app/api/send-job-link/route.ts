@@ -11,10 +11,11 @@ export async function POST(req: NextRequest) {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://sitesync-green.vercel.app'
 
   // Save to phase
-  await supabase.from('phases').update({ 
-    sub_name: subName, 
+  await supabase.from('phases').update({
+    sub_name: subName,
     sub_phone: subPhone || null,
-    sub_email: subEmail || null
+    sub_email: subEmail || null,
+    link_sent_at: new Date().toISOString()
   }).eq('id', phaseId)
 
   // Generate magic link token
@@ -77,7 +78,7 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  // Also try SMS if phone provided
+  // SMS via Twilio
   const TWILIO_SID = process.env.TWILIO_ACCOUNT_SID
   const TWILIO_TOKEN = process.env.TWILIO_AUTH_TOKEN
   const TWILIO_MESSAGING_SID = process.env.TWILIO_MESSAGING_SID
@@ -103,7 +104,7 @@ export async function POST(req: NextRequest) {
     phase_id: phaseId,
     action: `Job link sent to ${subName} for "${phaseName}"`,
     actor_name: 'Manager',
-    metadata: { sub_name: subName, sub_email: subEmail, sub_phone: subPhone }
+    metadata: { sub_name: subName, sub_email: subEmail, sub_phone: subPhone, magic_link: magicLink }
   })
 
   return NextResponse.json({ ok: true, magicLink })
