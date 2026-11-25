@@ -303,12 +303,17 @@ export default function ProjectPage() {
                               <button
                                 onClick={async () => {
                                   setSendingLink(ps.id)
-                                  await fetch('/api/send-job-link', {
+                                  const res = await fetch('/api/send-job-link', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ phaseId: phase.id, subName: ps.sub_name, subPhone: ps.sub_phone, subEmail: ps.sub_email })
-                                  })
+                                  }).catch(() => null)
                                   setSendingLink(null)
+                                  const result = res ? await res.json().catch(() => ({})) : {}
+                                  if (!res || !res.ok) {
+                                    alert(`Link not sent: ${result?.error || 'the server could not be reached.'}${result?.magicLink ? `\n\nYou can share this link manually:\n${result.magicLink}` : ''}`)
+                                    return
+                                  }
                                   setSentLink(prev => ({ ...prev, [ps.id]: true }))
                                   setTimeout(() => setSentLink(prev => ({ ...prev, [ps.id]: false })), 3000)
                                 }}
