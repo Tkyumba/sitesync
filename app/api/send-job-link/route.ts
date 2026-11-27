@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+import { adminClient } from '@/lib/server/admin'
+import { requireRole, STAFF_ROLES } from '@/lib/server/auth'
 
 export async function POST(req: NextRequest) {
+  const auth = await requireRole(STAFF_ROLES)
+  if (auth instanceof NextResponse) return auth
+  const supabase = adminClient()
+
   const { phaseId, subName, subPhone, subEmail } = await req.json()
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://sitesync-green.vercel.app'
 
@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
     project_id: phase?.project_id,
     phase_id: phaseId,
     action: `Job link sent to ${subName} for "${phaseName}"`,
-    actor_name: 'Manager',
+    actor_name: auth.name || 'Manager',
     metadata: { sub_name: subName, sub_email: subEmail, sub_phone: subPhone, magic_link: magicLink }
   })
 

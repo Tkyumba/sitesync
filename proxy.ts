@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -21,11 +21,16 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  const isPublic = request.nextUrl.pathname.startsWith("/login") ||
-    request.nextUrl.pathname.startsWith("/job/") ||
-    request.nextUrl.pathname.startsWith("/sub/")
+  const path = request.nextUrl.pathname
+  // Sub job links work without a login; their API routes check the link themselves.
+  const isPublic = path.startsWith("/login") ||
+    path.startsWith("/job/") ||
+    path.startsWith("/api/job/")
 
   if (!user && !isPublic) {
+    if (path.startsWith("/api/")) {
+      return NextResponse.json({ error: "Please log in." }, { status: 401 })
+    }
     return NextResponse.redirect(new URL("/login", request.url))
   }
 

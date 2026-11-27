@@ -1,12 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { randomBytes } from 'crypto'
+import { adminClient } from '@/lib/server/admin'
+import { requireRole, STAFF_ROLES } from '@/lib/server/auth'
 
+// Staff only. Creates the contractor's login and SiteSync record on the server,
+// so the public sign-up form can stay switched off.
 export async function POST(req: NextRequest) {
-  const { name, email, trade, tempPassword } = await req.json()
+  const auth = await requireRole(STAFF_ROLES)
+  if (auth instanceof NextResponse) return auth
+
+  const { name, email, phone, trade } = await req.json()
+  if (!name || !email) return NextResponse.json({ error: 'Name and email are required.' }, { status: 400 })
+
+  const supabase = adminClient()
+  const tempPassword = randomBytes(9).toString('base64url') + 'Ss1!'
+  const { data: created, error: createError } = await supabase.auth.admin.createUser({
+    email,
+    password: tempPassword,
+    email_confirm: true,
+  })
+  if (createError || !created.user) {
+    return NextResponse.json({ error: createError?.message || 'Could not create the account.' }, { status: 400 })
+  }
+
+  const { error: insertError } = await supabase.from('users').insert({
+    id: created.user.id,
+    name,
+    email,
+    phone: phone || null,
+    trade: trade || null,
+    role: 'sub',
+  })
+  if (insertError) {
+    await supabase.auth.admin.deleteUser(created.user.id)
+    return NextResponse.json({ error: insertError.message }, { status: 400 })
+  }
 
   const RESEND_API_KEY = process.env.RESEND_API_KEY
   if (!RESEND_API_KEY) {
     console.log(`[INVITE SKIPPED] Would email ${email}`)
-    return NextResponse.json({ ok: true, skipped: true })
+    return NextResponse.json({ ok: true, emailSkipped: true })
   }
 
   const html = `
@@ -47,16 +80,24 @@ export async function POST(req: NextRequest) {
 </body>
 </html>`
 
-  await fetch('https://api.resend.com/emails', {
+  const emailRes = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      from: 'SiteSync <onboarding@resend.dev>',
+      from: 'SiteSync <noreply@sitesyncapp.org>',
       to: email,
       subject: `You're on SiteSync — ${name}`,
       html
     })
-  })
+  }).catch(() => null)
+
+  if (!emailRes || !emailRes.ok) {
+    const body = emailRes ? await emailRes.json().catch(() => ({})) : {}
+    return NextResponse.json({
+      ok: true,
+      emailError: `Account created, but the invite email failed: ${body?.message || 'could not reach Resend'}.`,
+    })
+  }
 
   return NextResponse.json({ ok: true })
 }
