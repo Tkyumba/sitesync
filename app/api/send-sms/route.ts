@@ -1,31 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireRole, STAFF_ROLES } from '@/lib/server/auth'
+import { sendSms } from '@/lib/server/sms'
 
+// Staff only: without this check anyone could send texts on SiteSync's Twilio account.
 export async function POST(req: NextRequest) {
+  const auth = await requireRole(STAFF_ROLES)
+  if (auth instanceof NextResponse) return auth
+
   const { to, message } = await req.json()
+  if (!to || !message) return NextResponse.json({ error: 'Missing "to" or "message".' }, { status: 400 })
 
-  const TWILIO_SID = process.env.TWILIO_ACCOUNT_SID
-  const TWILIO_TOKEN = process.env.TWILIO_AUTH_TOKEN
-  const TWILIO_MESSAGING_SID = process.env.TWILIO_MESSAGING_SID
-
-  if (!TWILIO_SID || !TWILIO_TOKEN) {
-    console.log(`[SMS SKIPPED] To: ${to} | Message: ${message}`)
-    return NextResponse.json({ ok: true, skipped: true })
-  }
-
-  const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${TWILIO_SID}/Messages.json`, {
-    method: 'POST',
-    headers: {
-      'Authorization': 'Basic ' + Buffer.from(`${TWILIO_SID}:${TWILIO_TOKEN}`).toString('base64'),
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: new URLSearchParams({
-      To: to,
-      MessagingServiceSid: TWILIO_MESSAGING_SID || '',
-      Body: message,
-    })
-  })
-
-  const data = await res.json()
-  if (!res.ok) return NextResponse.json({ error: data.message }, { status: 400 })
-  return NextResponse.json({ ok: true, sid: data.sid })
+  const result = await sendSms(to, message)
+  if (!result.ok) return NextResponse.json({ error: result.error }, { status: 400 })
+  return NextResponse.json(result)
 }

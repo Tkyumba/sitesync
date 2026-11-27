@@ -44,32 +44,14 @@ export default function ContractorsPage() {
     setError('')
     setSuccess('')
 
-    const tempPassword = Math.random().toString(36).slice(2) + 'Ss1!'
-    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-      email: form.email,
-      password: tempPassword,
-      options: { emailRedirectTo: `${window.location.origin}/login` }
-    })
-
-    if (signUpError) { setError(signUpError.message); setLoading(false); return }
-
-    if (signUpData.user) {
-      const { error: insertError } = await supabase.from('users').insert({
-        id: signUpData.user.id,
-        name: form.name,
-        email: form.email,
-        phone: form.phone || null,
-        trade: form.trade || null,
-        role: 'sub'
-      })
-      if (insertError) { setError(insertError.message); setLoading(false); return }
-    }
-
-    fetch('/api/invite-contractor', {
+    const res = await fetch('/api/invite-contractor', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: form.name, email: form.email, trade: form.trade, tempPassword })
-    }).catch(() => {})
+      body: JSON.stringify({ name: form.name, email: form.email, phone: form.phone, trade: form.trade })
+    }).catch(() => null)
+    const result = res ? await res.json().catch(() => ({})) : {}
+    if (!res || !res.ok) { setError(result?.error || 'Could not add contractor.'); setLoading(false); return }
+    if (result.emailError) setError(result.emailError)
 
     setSuccess(`${form.name} added and invited.`)
     setForm({ name: '', email: '', phone: '', trade: '' })

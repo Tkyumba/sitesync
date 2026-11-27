@@ -20,39 +20,28 @@ export default function JobPage() {
   useEffect(() => { load() }, [])
 
   async function load() {
-    const { data: tokenData, error } = await supabase
-      .from('job_tokens')
-      .select('*, phases(*, projects(*))')
-      .eq('token', token)
-      .single()
+    const res = await fetch(`/api/job/${encodeURIComponent(token)}`, { cache: 'no-store' }).catch(() => null)
+    if (!res) { setStatus('invalid'); return }
+    if (res.status === 410) { setStatus('expired'); return }
+    if (!res.ok) { setStatus('invalid'); return }
+    const data = await res.json()
 
-    if (error || !tokenData) { setStatus('invalid'); return }
-    if (new Date(tokenData.expires_at) < new Date()) { setStatus('expired'); return }
+    setJob({ sub_name: data.subName })
+    setPhase(data.phase)
+    setProject(data.project)
 
-    // Record that the link was opened
-    await supabase.from('job_tokens').update({
-      opened_at: new Date().toISOString(),
-      opened_count: (tokenData.opened_count || 0) + 1
-    }).eq('token', token)
-
-    // Update phase link_opened_at
-    if (!tokenData.phases?.link_opened_at) {
-      await supabase.from('phases').update({
-        link_opened_at: new Date().toISOString()
-      }).eq('id', tokenData.phases?.id)
-    }
-
-    setJob(tokenData)
-    setPhase(tokenData.phases)
-    setProject(tokenData.phases?.projects)
-
-    if (tokenData.phases?.status === 'complete') setStatus('complete')
-    else if (tokenData.phases?.status === 'in_progress') setStatus('started')
+    if (data.phase?.status === 'complete') setStatus('complete')
+    else if (data.phase?.status === 'in_progress') setStatus('started')
     else setStatus('ready')
   }
 
   async function markStarted() {
-    await supabase.from('phases').update({ status: 'in_progress', started_at: new Date().toISOString() }).eq('id', phase.id)
+    const res = await fetch(`/api/job/${encodeURIComponent(token)}/start`, { method: 'POST' }).catch(() => null)
+    if (!res || !res.ok) {
+      const body = res ? await res.json().catch(() => ({})) : {}
+      alert(body?.error || 'Could not start the job. Check your connection and try again.')
+      return
+    }
     setStatus('started')
     setPhase((prev: any) => ({ ...prev, status: 'in_progress' }))
   }
@@ -60,44 +49,39 @@ export default function JobPage() {
   async function markComplete() {
     if (selectedPhotos.length === 0) return
     setUploading(true)
-
-    const failures: string[] = []
-    for (const photo of selectedPhotos) {
-      const fileExt = photo.name.split('.').pop()
-      const fileName = `${phase.id}-${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`
-      const { error: uploadError } = await supabase.storage.from('phase-photos').upload(fileName, photo)
-      if (uploadError) {
-        console.error('[job] photo upload failed', uploadError)
-        failures.push(`${photo.name}: upload failed (${uploadError.message})`)
-        continue
-      }
-      const { data: { publicUrl } } = supabase.storage.from('phase-photos').getPublicUrl(fileName)
-      const { error: insertError } = await supabase.from('phase_photos').insert({
-        phase_id: phase.id,
-        storage_url: publicUrl,
-        note: note || '',
-        uploaded_by: null
-      })
-      if (insertError) {
-        console.error('[job] photo record failed', insertError)
-        failures.push(`${photo.name}: could not save photo record (${insertError.message})`)
-      }
-    }
-
-    if (failures.length > 0) {
+    const fail = (message: string) => {
       setUploading(false)
-      alert(`Your photos didn't go through, so the job was not marked complete. Please try again or contact your site manager.\n\n${failures.join('\n')}`)
-      return
+      alert(`${message}\n\nThe job was not marked complete.`)
     }
 
-    await supabase.from('phases').update({ status: 'complete', completed_at: new Date().toISOString() }).eq('id', phase.id)
-    await supabase.from('job_tokens').update({ used: true }).eq('token', token)
-
-    fetch('/api/notify-next-sub', {
+    // 1. Ask the server for one-time upload slots for this job
+    const slotRes = await fetch(`/api/job/${encodeURIComponent(token)}/upload-urls`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ completedPhaseId: phase.id, projectId: phase.project_id })
-    }).catch(() => {})
+      body: JSON.stringify({ files: selectedPhotos.map(f => ({ name: f.name })) })
+    }).catch(() => null)
+    const slotBody = slotRes ? await slotRes.json().catch(() => ({})) : {}
+    if (!slotRes || !slotRes.ok) return fail(slotBody?.error || 'Could not prepare your photo upload.')
+
+    // 2. Upload each photo into its slot
+    const slots: { path: string; token: string }[] = slotBody.slots
+    for (let i = 0; i < selectedPhotos.length; i++) {
+      const photo = selectedPhotos[i]
+      const { error } = await supabase.storage.from('phase-photos').uploadToSignedUrl(slots[i].path, slots[i].token, photo, { contentType: photo.type || undefined })
+      if (error) {
+        console.error('[job] photo upload failed', error)
+        return fail(`"${photo.name}" did not upload (${error.message}). Please try again.`)
+      }
+    }
+
+    // 3. Submit the photos and mark the job complete
+    const doneRes = await fetch(`/api/job/${encodeURIComponent(token)}/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ paths: slots.map(s => s.path), note })
+    }).catch(() => null)
+    const doneBody = doneRes ? await doneRes.json().catch(() => ({})) : {}
+    if (!doneRes || !doneRes.ok) return fail(doneBody?.error || 'Could not submit your photos.')
 
     setUploading(false)
     setStatus('complete')
