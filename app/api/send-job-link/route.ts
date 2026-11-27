@@ -42,8 +42,13 @@ export async function POST(req: NextRequest) {
 
   // Send email via Resend
   const RESEND_API_KEY = process.env.RESEND_API_KEY
+  let emailError: string | null = null
+  if (subEmail && !RESEND_API_KEY) {
+    emailError = 'RESEND_API_KEY is not set on the server, so no email was sent.'
+    console.error('[send-job-link]', emailError)
+  }
   if (RESEND_API_KEY && subEmail) {
-    await fetch('https://api.resend.com/emails', {
+    const emailRes = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -75,7 +80,15 @@ export async function POST(req: NextRequest) {
     </div>
   </div></body></html>`
       })
+    }).catch((e: unknown) => {
+      emailError = `Could not reach Resend: ${e instanceof Error ? e.message : String(e)}`
+      return null
     })
+    if (emailRes && !emailRes.ok) {
+      const body = await emailRes.json().catch(() => ({}))
+      emailError = `Resend rejected the email (${emailRes.status}): ${body?.message || emailRes.statusText}`
+    }
+    if (emailError) console.error('[send-job-link]', emailError)
   }
 
   // SMS via Twilio
@@ -106,6 +119,10 @@ export async function POST(req: NextRequest) {
     actor_name: 'Manager',
     metadata: { sub_name: subName, sub_email: subEmail, sub_phone: subPhone, magic_link: magicLink }
   })
+
+  if (emailError) {
+    return NextResponse.json({ ok: false, error: emailError, magicLink }, { status: 502 })
+  }
 
   return NextResponse.json({ ok: true, magicLink })
 }

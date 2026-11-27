@@ -61,18 +61,33 @@ export default function JobPage() {
     if (selectedPhotos.length === 0) return
     setUploading(true)
 
+    const failures: string[] = []
     for (const photo of selectedPhotos) {
       const fileExt = photo.name.split('.').pop()
       const fileName = `${phase.id}-${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`
       const { error: uploadError } = await supabase.storage.from('phase-photos').upload(fileName, photo)
-      if (uploadError) continue
+      if (uploadError) {
+        console.error('[job] photo upload failed', uploadError)
+        failures.push(`${photo.name}: upload failed (${uploadError.message})`)
+        continue
+      }
       const { data: { publicUrl } } = supabase.storage.from('phase-photos').getPublicUrl(fileName)
-      await supabase.from('phase_photos').insert({
+      const { error: insertError } = await supabase.from('phase_photos').insert({
         phase_id: phase.id,
         storage_url: publicUrl,
         note: note || '',
         uploaded_by: null
       })
+      if (insertError) {
+        console.error('[job] photo record failed', insertError)
+        failures.push(`${photo.name}: could not save photo record (${insertError.message})`)
+      }
+    }
+
+    if (failures.length > 0) {
+      setUploading(false)
+      alert(`Your photos didn't go through, so the job was not marked complete. Please try again or contact your site manager.\n\n${failures.join('\n')}`)
+      return
     }
 
     await supabase.from('phases').update({ status: 'complete', completed_at: new Date().toISOString() }).eq('id', phase.id)
@@ -210,7 +225,7 @@ export default function JobPage() {
               <p style={{ color: hasPhotos ? '#4ADE80' : '#9CA3AF', fontSize: '14px', fontWeight: '600', margin: '0 0 2px' }}>
                 {hasPhotos ? `${selectedPhotos.length} photo${selectedPhotos.length !== 1 ? 's' : ''} ready` : 'Tap to add photos'}
               </p>
-              <p style={{ color: '#374151', fontSize: '11px', margin: 0 }}>Required to complete</p>
+              <p style={{ color: '#374151', fontSize: '11px', margin: 0 }}>{hasPhotos ? 'Tap to add more · select several at once' : 'Required · you can add several'}</p>
               <input type="file" accept="image/*" multiple style={{ display: 'none' }}
                 onChange={e => {
                   const files = Array.from(e.target.files || [])
@@ -218,6 +233,8 @@ export default function JobPage() {
                     setSelectedPhotos(prev => [...prev, ...files])
                     setPreviews(prev => [...prev, ...files.map(f => URL.createObjectURL(f))])
                   }
+                  // Reset so the sub can tap again to add more photos (including the same file)
+                  e.target.value = ''
                 }}
               />
             </label>
