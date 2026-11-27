@@ -225,7 +225,7 @@ export default function JobPage() {
               <p style={{ color: hasPhotos ? '#4ADE80' : '#9CA3AF', fontSize: '14px', fontWeight: '600', margin: '0 0 2px' }}>
                 {hasPhotos ? `${selectedPhotos.length} photo${selectedPhotos.length !== 1 ? 's' : ''} ready` : 'Tap to add photos'}
               </p>
-              <p style={{ color: '#374151', fontSize: '11px', margin: 0 }}>Required to complete</p>
+              <p style={{ color: '#374151', fontSize: '11px', margin: 0 }}>{hasPhotos ? 'Tap to add more · select several at once' : 'Required · you can add several'}</p>
               <input type="file" accept="image/*" multiple style={{ display: 'none' }}
                 onChange={e => {
                   const files = Array.from(e.target.files || [])
@@ -233,6 +233,8 @@ export default function JobPage() {
                     setSelectedPhotos(prev => [...prev, ...files])
                     setPreviews(prev => [...prev, ...files.map(f => URL.createObjectURL(f))])
                   }
+                  // Reset so the sub can tap again to add more photos (including the same file)
+                  e.target.value = ''
                 }}
               />
             </label>
