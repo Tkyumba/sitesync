@@ -25,7 +25,12 @@ export async function proxy(request: NextRequest) {
   // Sub job links work without a login; their API routes check the link themselves.
   const isPublic = path.startsWith("/login") ||
     path.startsWith("/job/") ||
-    path.startsWith("/api/job/")
+    path.startsWith("/api/job/") ||
+    // App icon, home-screen manifest and link-preview image must load without a login
+    path === "/manifest.webmanifest" ||
+    path.startsWith("/opengraph-image") ||
+    path.startsWith("/icon") ||
+    path.startsWith("/apple-icon")
 
   if (!user && !isPublic) {
     if (path.startsWith("/api/")) {
