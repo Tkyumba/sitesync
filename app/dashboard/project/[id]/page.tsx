@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import PhotoViewer from '@/app/components/PhotoViewer'
 import { createClient } from '@/lib/supabase'
 import { useRouter, useParams } from 'next/navigation'
 
@@ -59,6 +60,7 @@ export default function ProjectPage() {
   const [phases, setPhases] = useState<any[]>([])
   const [subs, setSubs] = useState<any[]>([])
   const [photos, setPhotos] = useState<{ [key: string]: any[] }>({})
+  const [viewer, setViewer] = useState<{ photos: any[]; index: number } | null>(null)
   const [expandedPhase, setExpandedPhase] = useState<string | null>(null)
   const [newPhase, setNewPhase] = useState('')
   const [loading, setLoading] = useState(false)
@@ -386,12 +388,12 @@ export default function ProjectPage() {
                                     src={photo.storage_url}
                                     alt={`Photo ${i + 1}`}
                                     style={{ width: '100%', height: '120px', objectFit: 'cover', cursor: 'zoom-in', display: 'block' }}
-                                    onClick={() => window.open(photo.storage_url, '_blank')}
+                                    onClick={() => setViewer({ photos: phasePhotos, index: i })}
                                   />
                                   <div style={{ padding: '8px 10px' }}>
                                     {photo.note && <p style={{ fontSize: '11px', color: '#9CA3AF', margin: '0 0 3px', fontStyle: 'italic' }}>"{photo.note}"</p>}
                                     <p style={{ fontSize: '10px', color: '#4B5563', margin: 0, fontFamily: "'DM Mono', monospace" }}>
-                                      {photo.users?.name || 'Unknown'} · {new Date(photo.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                      {photo.users?.name || 'Subcontractor'} · {new Date(photo.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                                     </p>
                                   </div>
                                 </div>
@@ -452,6 +454,14 @@ export default function ProjectPage() {
           </div>
         )}
       </div>
+      {viewer && (
+        <PhotoViewer
+          photos={viewer.photos}
+          index={viewer.index}
+          onClose={() => setViewer(null)}
+          onChange={(index) => setViewer(v => (v ? { ...v, index } : v))}
+        />
+      )}
     </div>
   )
 }
